@@ -1,0 +1,16 @@
+const express = require('express');
+const { addReview, updateReview, deleteReview, adminReply } = require('../controllers/reviewController');
+const { protect } = require('../middleware/authMiddleware');
+const { admin } = require('../middleware/adminMiddleware');
+
+const router = express.Router();
+
+// User review routes
+router.post('/:productId', protect, addReview);
+router.put('/:reviewId', protect, updateReview);
+router.delete('/:reviewId', protect, deleteReview);
+
+// Admin reply
+router.post('/:reviewId/reply', protect, admin, adminReply);
+
+module.exports = router;
