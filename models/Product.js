@@ -11,7 +11,7 @@ const variantSchema = new mongoose.Schema(
 
 const imageSchema = new mongoose.Schema(
   {
-    public_id: { type: String, required: true },
+    public_id: { type: String, default: '' },
     url: { type: String, required: true },
   },
   { _id: false }
@@ -31,6 +31,8 @@ const productSchema = new mongoose.Schema(
     numReviews: { type: Number, default: 0 },
     featured: { type: Boolean, default: false },
     lowStock: { type: Boolean, default: false },
+    specifications: { type: Map, of: String, default: {} },
+    isActive: { type: Boolean, default: true },
   },
   { timestamps: true }
 );

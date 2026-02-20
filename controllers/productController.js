@@ -46,7 +46,7 @@ exports.getCategories = async (req, res, next) => {
 // Create product (admin)
 exports.createProduct = async (req, res, next) => {
   try {
-    const { name, description, price, category, stock, brand, variants, featured } = req.body;
+    const { name, description, price, category, stock, brand, variants, featured, specifications } = req.body;
 
     if (!name || !description || !price || !category || !stock || !brand) {
       return res.status(400).json({ message: 'Missing required product fields' });
@@ -70,8 +70,9 @@ exports.createProduct = async (req, res, next) => {
       brand,
       variants,
       images,
-      featured: !!featured,
+      featured: featured === true || featured === 'true',
       lowStock: stock <= 5,
+      specifications: specifications ? (typeof specifications === 'string' ? JSON.parse(specifications) : specifications) : {},
     });
 
     return res.status(201).json(product);
@@ -84,7 +85,7 @@ exports.createProduct = async (req, res, next) => {
 exports.updateProduct = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const { name, description, price, category, stock, brand, variants, featured } = req.body;
+    const { name, description, price, category, stock, brand, variants, featured, specifications } = req.body;
 
     const product = await Product.findById(id);
     if (!product) {
@@ -98,7 +99,10 @@ exports.updateProduct = async (req, res, next) => {
     if (stock !== undefined) product.stock = stock;
     if (brand) product.brand = brand;
     if (variants) product.variants = variants;
-    if (featured !== undefined) product.featured = featured;
+    if (featured !== undefined) product.featured = featured === true || featured === 'true';
+    if (specifications !== undefined) {
+      product.specifications = typeof specifications === 'string' ? JSON.parse(specifications) : specifications;
+    }
 
     if (stock !== undefined) {
       product.lowStock = stock <= 5;
@@ -179,6 +183,7 @@ exports.getProducts = async (req, res, next) => {
     const featured = req.query.featured ? { featured: req.query.featured === 'true' } : {};
 
     const query = {
+      isActive: true,
       ...keyword,
       ...category,
       ...brand,
@@ -218,6 +223,63 @@ exports.getFeaturedProducts = async (req, res, next) => {
     const limit = Number(req.query.limit) || 8;
     const products = await Product.find({ featured: true }).sort({ createdAt: -1 }).limit(limit);
     return res.json(products);
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Get products by category slug
+exports.getProductsByCategory = async (req, res, next) => {
+  try {
+    const { slug } = req.params;
+    const category = await Category.findOne({ slug });
+    if (!category) return res.status(404).json({ message: 'Category not found' });
+
+    const page = Number(req.query.page) || 1;
+    const limit = Number(req.query.limit) || 12;
+    const skip = (page - 1) * limit;
+
+    const [products, total] = await Promise.all([
+      Product.find({ category: category._id, isActive: true })
+        .populate('category', 'name slug')
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit),
+      Product.countDocuments({ category: category._id, isActive: true }),
+    ]);
+
+    return res.json({ products, category, page, limit, total, totalPages: Math.ceil(total / limit) });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Get brands list
+exports.getBrands = async (req, res, next) => {
+  try {
+    const brands = await Product.distinct('brand', { isActive: true });
+    return res.json(brands.sort());
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Get related products (same category, exclude current)
+exports.getRelatedProducts = async (req, res, next) => {
+  try {
+    const product = await Product.findById(req.params.id);
+    if (!product) return res.status(404).json({ message: 'Product not found' });
+
+    const related = await Product.find({
+      category: product.category,
+      _id: { $ne: product._id },
+      isActive: true,
+    })
+      .populate('category', 'name slug')
+      .limit(6)
+      .sort({ ratings: -1 });
+
+    return res.json(related);
   } catch (error) {
     next(error);
   }

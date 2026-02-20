@@ -4,6 +4,8 @@ const {
   loginUser,
   getProfile,
   updateProfile,
+  uploadProfileImage,
+  changePassword,
   getAddresses,
   addAddress,
   updateAddress,
@@ -18,6 +20,7 @@ const {
 } = require('../controllers/userController');
 const { protect } = require('../middleware/authMiddleware');
 const { admin } = require('../middleware/adminMiddleware');
+const upload = require('../middleware/uploadMiddleware');
 
 const router = express.Router();
 
@@ -31,6 +34,8 @@ router.post('/google-login', googleLogin);
 // Authenticated user profile
 router.get('/profile', protect, getProfile);
 router.put('/profile', protect, updateProfile);
+router.post('/profile/image', protect, upload.single('image'), uploadProfileImage);
+router.put('/change-password', protect, changePassword);
 
 // Address management
 router.get('/addresses', protect, getAddresses);

@@ -3,6 +3,8 @@ const { OAuth2Client } = require('google-auth-library');
 const User = require('../models/User');
 const generateToken = require('../utils/generateToken');
 const sendEmail = require('../utils/sendEmail');
+const cloudinary = require('../config/cloudinary');
+const streamifier = require('streamifier');
 
 // Google OAuth client for verifying ID tokens from the frontend
 const googleClientId = process.env.GOOGLE_CLIENT_ID;
@@ -129,6 +131,64 @@ exports.updateProfile = async (req, res, next) => {
   }
 };
 
+// Upload profile image to Cloudinary
+exports.uploadProfileImage = async (req, res, next) => {
+  try {
+    if (!req.file) return res.status(400).json({ message: 'No file uploaded' });
+
+    const streamUpload = () =>
+      new Promise((resolve, reject) => {
+        const stream = cloudinary.uploader.upload_stream(
+          { folder: 'electrical-shop/profiles', transformation: [{ width: 400, height: 400, crop: 'fill' }] },
+          (error, result) => {
+            if (result) resolve(result);
+            else reject(error);
+          }
+        );
+        streamifier.createReadStream(req.file.buffer).pipe(stream);
+      });
+
+    const result = await streamUpload();
+
+    const user = await User.findByIdAndUpdate(
+      req.user._id,
+      { profileImage: result.secure_url },
+      { new: true }
+    ).select('-password');
+
+    return res.json({ message: 'Profile image updated', profileImage: user.profileImage, user });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Change password (requires current password)
+exports.changePassword = async (req, res, next) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+
+    if (!currentPassword || !newPassword) {
+      return res.status(400).json({ message: 'Current and new password are required' });
+    }
+    if (newPassword.length < 6) {
+      return res.status(400).json({ message: 'New password must be at least 6 characters' });
+    }
+
+    const user = await User.findById(req.user._id);
+    if (!user) return res.status(404).json({ message: 'User not found' });
+
+    const isMatch = await user.matchPassword(currentPassword);
+    if (!isMatch) return res.status(401).json({ message: 'Current password is incorrect' });
+
+    user.password = newPassword; // hashed by pre-save hook
+    await user.save();
+
+    return res.json({ message: 'Password changed successfully' });
+  } catch (error) {
+    next(error);
+  }
+};
+
 // Get addresses of logged-in user
 exports.getAddresses = async (req, res, next) => {
   try {
@@ -203,7 +263,7 @@ exports.deleteAddress = async (req, res, next) => {
 
     const wasDefault = address.isDefault;
 
-    address.remove();
+    address.deleteOne();
 
     if (wasDefault && user.addresses.length > 0) {
       user.addresses[0].isDefault = true;

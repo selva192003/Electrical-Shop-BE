@@ -60,6 +60,11 @@ app.use('/api/orders', require('./routes/orderRoutes'));
 app.use('/api/payments', require('./routes/paymentRoutes'));
 app.use('/api/reviews', require('./routes/reviewRoutes'));
 app.use('/api/dashboard', require('./routes/dashboardRoutes'));
+app.use('/api/wishlist', require('./routes/wishlistRoutes'));
+app.use('/api/notifications', require('./routes/notificationRoutes'));
+app.use('/api/support', require('./routes/supportRoutes'));
+app.use('/api/returns', require('./routes/returnRoutes'));
+app.use('/api/coupons', require('./routes/couponRoutes'));
 
 // Error handling
 app.use(notFound);

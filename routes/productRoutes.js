@@ -6,6 +6,9 @@ const {
   getProductById,
   getProducts,
   getFeaturedProducts,
+  getProductsByCategory,
+  getBrands,
+  getRelatedProducts,
   createCategory,
   getCategories,
 } = require('../controllers/productController');
@@ -19,9 +22,14 @@ const router = express.Router();
 router.get('/categories', getCategories);
 router.post('/categories', protect, admin, createCategory);
 
+// Metadata
+router.get('/brands', getBrands);
+
 // Products
 router.get('/', getProducts);
 router.get('/featured', getFeaturedProducts);
+router.get('/by-category/:slug', getProductsByCategory);
+router.get('/:id/related', getRelatedProducts);
 router.get('/:id', getProductById);
 
 router.post('/', protect, admin, upload.array('images', 5), createProduct);
