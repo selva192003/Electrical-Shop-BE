@@ -68,7 +68,7 @@ exports.createProduct = async (req, res, next) => {
       category,
       stock,
       brand,
-      variants,
+      variants: variants ? (typeof variants === 'string' ? JSON.parse(variants) : variants) : [],
       images,
       featured: featured === true || featured === 'true',
       lowStock: stock <= 5,
@@ -98,7 +98,7 @@ exports.updateProduct = async (req, res, next) => {
     if (category) product.category = category;
     if (stock !== undefined) product.stock = stock;
     if (brand) product.brand = brand;
-    if (variants) product.variants = variants;
+    if (variants !== undefined) product.variants = typeof variants === 'string' ? JSON.parse(variants) : variants;
     if (featured !== undefined) product.featured = featured === true || featured === 'true';
     if (specifications !== undefined) {
       product.specifications = typeof specifications === 'string' ? JSON.parse(specifications) : specifications;

@@ -104,7 +104,7 @@ exports.removeFromCart = async (req, res, next) => {
       return res.status(404).json({ message: 'Cart item not found' });
     }
 
-    item.remove();
+    cart.items.pull({ _id: itemId });
     recalculateTotal(cart);
 
     await cart.save();

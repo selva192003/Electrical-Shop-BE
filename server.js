@@ -42,11 +42,24 @@ if (process.env.NODE_ENV !== 'production') {
 // Rate limiting
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100,
+  max: 1000,                 // generous limit for normal browsing + dev hot-reload
   standardHeaders: true,
   legacyHeaders: false,
+  message: { message: 'Too many requests, please try again later.' },
 });
+
+// Stricter limiter for sensitive auth endpoints only
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 30,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { message: 'Too many login attempts, please try again later.' },
+});
+
 app.use('/api', limiter);
+app.use('/api/users/login', authLimiter);
+app.use('/api/users/register', authLimiter);
 
 // Routes
 app.get('/api/health', (req, res) => {
