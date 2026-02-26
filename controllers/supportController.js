@@ -81,18 +81,32 @@ exports.replyToTicket = async (req, res, next) => {
 
     ticket.replies.push({ sender, message });
 
-    if (sender === 'admin' && ticket.status === 'open') {
-      ticket.status = 'in_progress';
+    if (sender === 'admin') {
+      // First admin reply moves ticket to in_progress
+      if (ticket.status === 'open') {
+        ticket.status = 'in_progress';
+      }
+      // Admin replying to a resolved ticket re-opens it
+      if (ticket.status === 'resolved' || ticket.status === 'closed') {
+        ticket.status = 'in_progress';
+      }
+    }
+
+    if (sender === 'user') {
+      // User following up on a resolved/closed ticket re-opens it
+      if (ticket.status === 'resolved' || ticket.status === 'closed') {
+        ticket.status = 'in_progress';
+      }
     }
 
     await ticket.save();
 
-    // Notify the other party
+    // Notify the recipient
     if (sender === 'admin') {
       await createNotification({
         userId: ticket.user,
         title: 'Support Reply Received',
-        message: `Admin replied to your ticket: "${ticket.subject}"`,
+        message: `The support team replied to your ticket: "${ticket.subject}"`,
         type: 'support',
         link: `/support/tickets/${ticket._id}`,
       });
@@ -108,6 +122,13 @@ exports.replyToTicket = async (req, res, next) => {
 exports.updateTicketStatus = async (req, res, next) => {
   try {
     const { status } = req.body;
+
+    // Validate before touching the DB
+    const ALLOWED_STATUSES = ['open', 'in_progress', 'resolved'];
+    if (!ALLOWED_STATUSES.includes(status)) {
+      return res.status(400).json({ message: `Invalid status. Allowed values: ${ALLOWED_STATUSES.join(', ')}` });
+    }
+
     const ticket = await SupportTicket.findByIdAndUpdate(
       req.params.id,
       { status },
@@ -120,13 +141,36 @@ exports.updateTicketStatus = async (req, res, next) => {
       await createNotification({
         userId: ticket.user,
         title: 'Support Ticket Resolved',
-        message: `Your ticket "${ticket.subject}" has been resolved.`,
+        message: `Your ticket "${ticket.subject}" has been resolved. If you need further help, you can raise a new ticket.`,
         type: 'support',
         link: `/support/tickets/${ticket._id}`,
       });
     }
 
     return res.json(ticket);
+  } catch (error) {
+    next(error);
+  }
+};
+
+// GET /api/support/admin/pending-count  — count tickets needing admin attention
+exports.getPendingCount = async (req, res, next) => {
+  try {
+    // 1. All open tickets (new — admin hasn't touched yet)
+    const openCount = await SupportTicket.countDocuments({ status: 'open' });
+
+    // 2. In-progress tickets where the LAST reply came from the user (user replied, waiting for admin)
+    const inProgressTickets = await SupportTicket.find(
+      { status: 'in_progress', 'replies.0': { $exists: true } },
+      { replies: 1 }
+    ).lean();
+
+    const userRepliedCount = inProgressTickets.filter((t) => {
+      const last = t.replies[t.replies.length - 1];
+      return last && last.sender === 'user';
+    }).length;
+
+    return res.json({ count: openCount + userRepliedCount });
   } catch (error) {
     next(error);
   }
