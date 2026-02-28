@@ -14,7 +14,7 @@ exports.getDashboardSummary = async (req, res, next) => {
       topProductsRaw,
       statusBreakdown,
       pendingOrders,
-      outOfStock,
+      lowStock,
       recentOrders,
     ] = await Promise.all([
       User.countDocuments(),
@@ -53,7 +53,7 @@ exports.getDashboardSummary = async (req, res, next) => {
         { $group: { _id: '$orderStatus', count: { $sum: 1 } } },
       ]),
       Order.countDocuments({ orderStatus: 'Pending' }),
-      Product.countDocuments({ stock: 0 }),
+      Product.countDocuments({ stock: { $gt: 0, $lte: 5 } }),
       Order.find()
         .sort({ createdAt: -1 })
         .limit(5)
@@ -70,7 +70,7 @@ exports.getDashboardSummary = async (req, res, next) => {
       totalOrders,
       totalRevenue,
       pendingOrders,
-      outOfStock,
+      lowStock,
       monthlySales,
       topProducts: topProductsRaw,
       orderStatusBreakdown: statusBreakdown,
@@ -268,6 +268,20 @@ exports.generateDescription = async (req, res, next) => {
       `${priceNote}${stockNote}`;
 
     return res.json({ description });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// ── Low Stock Products ─────────────────────────────────────────────────────────
+
+exports.getLowStockProducts = async (req, res, next) => {
+  try {
+    const products = await Product.find({ stock: { $gt: 0, $lte: 5 }, isActive: { $ne: false } })
+      .populate('category', 'name')
+      .select('name brand stock price images category')
+      .sort({ stock: 1 });
+    return res.json(products);
   } catch (err) {
     next(err);
   }

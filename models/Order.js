@@ -32,10 +32,12 @@ const shippingAddressSchema = new mongoose.Schema(
 
 const paymentInfoSchema = new mongoose.Schema(
   {
-    method: { type: String, default: 'Razorpay' },
-    razorpayOrderId: { type: String },
+    // 'Razorpay' | 'COD'
+    method: { type: String, enum: ['Razorpay', 'COD'], default: 'Razorpay' },
+    razorpayOrderId:  { type: String },
     razorpayPaymentId: { type: String },
-    status: { type: String, default: 'pending' },
+    // 'Pending' | 'Paid' | 'Failed'
+    status: { type: String, enum: ['Pending', 'Paid', 'Failed'], default: 'Pending' },
   },
   { _id: false }
 );
@@ -63,6 +65,8 @@ const orderSchema = new mongoose.Schema(
     },
     isPaid: { type: Boolean, default: false },
     paidAt: { type: Date },
+    cancelReason: { type: String, default: '' },
+    cancelledAt: { type: Date },
   },
   { timestamps: true }
 );

@@ -99,7 +99,7 @@ exports.verifyPayment = async (req, res, next) => {
         method: 'Razorpay',
         razorpayOrderId: razorpay_order_id,
         razorpayPaymentId: razorpay_payment_id,
-        status: 'captured',
+        status: 'Paid',
       };
       await order.save();
 
@@ -107,7 +107,10 @@ exports.verifyPayment = async (req, res, next) => {
       await reduceStockForOrder(order._id);
     }
 
-    return res.json({ message: 'Payment verified and order updated successfully' });
+    return res.json({
+      message: 'Payment verified and order updated successfully',
+      orderId: order ? order._id.toString() : null,
+    });
   } catch (error) {
     next(error);
   }

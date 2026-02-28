@@ -21,13 +21,11 @@ const updateProductRating = async (productId) => {
     },
   ]);
 
-  await Product.findByIdAndUpdate(
-    productId,
-    stats.length > 0
-      ? { ratings: Math.round(stats[0].avgRating * 10) / 10, numReviews: stats[0].numReviews }
-      : { ratings: 0, numReviews: 0 },
-    { new: false }
-  );
+  const update = stats.length > 0
+    ? { $set: { ratings: Math.round(stats[0].avgRating * 10) / 10, numReviews: stats[0].numReviews } }
+    : { $set: { ratings: 0, numReviews: 0 } };
+
+  await Product.findByIdAndUpdate(productId, update, { new: false });
 };
 
 // Helper: return the updated ratings payload for frontend caching
