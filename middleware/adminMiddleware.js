@@ -6,4 +6,7 @@ const admin = (req, res, next) => {
   return res.status(403).json({ message: 'Admin access only' });
 };
 
-module.exports = { admin };
+// Alias for consistent naming in new routes
+const isAdmin = admin;
+
+module.exports = { admin, isAdmin };

@@ -15,7 +15,7 @@ const supportTicketSchema = new mongoose.Schema(
     description: { type: String, required: true },
     category: {
       type: String,
-      enum: ['order_issue', 'payment_issue', 'product_query', 'return_request', 'other'],
+      enum: ['order_issue', 'payment_issue', 'product_query', 'return_request', 'warranty', 'other'],
       default: 'other',
     },
     status: {

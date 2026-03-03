@@ -3,6 +3,8 @@ const Cart = require('../models/Cart');
 const Product = require('../models/Product');
 const Notification = require('../models/Notification');
 const User = require('../models/User');
+const { awardPointsForOrder } = require('./loyaltyController');
+const { createWarrantiesForOrder } = require('./warrantyController');
 
 // Create a new order from cart or direct items
 exports.createOrder = async (req, res, next) => {
@@ -162,6 +164,10 @@ exports.updateOrderStatus = async (req, res, next) => {
     if (status === 'Delivered') {
       order.isDelivered = true;
       order.deliveredAt = new Date();
+      // Award loyalty points (1 pt per ₹10)
+      awardPointsForOrder(order.user, order._id, order.totalPrice).catch(() => {});
+      // Create digital warranty records
+      createWarrantiesForOrder(order._id).catch(() => {});
     }
 
     await order.save();

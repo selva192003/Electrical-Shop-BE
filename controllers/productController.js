@@ -1,6 +1,7 @@
 const Product = require('../models/Product');
 const Category = require('../models/Category');
 const cloudinary = require('../config/cloudinary');
+const { notifyRestockSubscribers } = require('./flashSaleController');
 
 // Helper to upload an image buffer to Cloudinary
 const uploadImageToCloudinary = (fileBuffer) =>
@@ -92,6 +93,8 @@ exports.updateProduct = async (req, res, next) => {
       return res.status(404).json({ message: 'Product not found' });
     }
 
+    const prevStock = product.stock;
+
     if (name) product.name = name;
     if (description) product.description = description;
     if (price !== undefined) product.price = price;
@@ -103,9 +106,19 @@ exports.updateProduct = async (req, res, next) => {
     if (specifications !== undefined) {
       product.specifications = typeof specifications === 'string' ? JSON.parse(specifications) : specifications;
     }
+    // Extended fields
+    if (req.body.warrantyMonths !== undefined) product.warrantyMonths = req.body.warrantyMonths;
+    if (req.body.warrantyTerms !== undefined) product.warrantyTerms = req.body.warrantyTerms;
+    if (req.body.sku !== undefined) product.sku = req.body.sku;
+    if (req.body.costPrice !== undefined) product.costPrice = req.body.costPrice;
+    if (req.body.lowStockThreshold !== undefined) product.lowStockThreshold = req.body.lowStockThreshold;
+    if (req.body.warehouseLocation !== undefined) product.warehouseLocation = req.body.warehouseLocation;
+    if (req.body.tags !== undefined) {
+      product.tags = typeof req.body.tags === 'string' ? JSON.parse(req.body.tags) : req.body.tags;
+    }
 
     if (stock !== undefined) {
-      product.lowStock = stock <= 5;
+      product.lowStock = stock <= (product.lowStockThreshold || 10);
     }
 
     // Handle new images if provided
@@ -119,6 +132,12 @@ exports.updateProduct = async (req, res, next) => {
     }
 
     const updated = await product.save();
+
+    // If stock went from 0 to positive, notify subscribers
+    if (prevStock === 0 && updated.stock > 0) {
+      notifyRestockSubscribers(updated).catch(() => {});
+    }
+
     return res.json(updated);
   } catch (error) {
     next(error);

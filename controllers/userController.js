@@ -5,6 +5,7 @@ const generateToken = require('../utils/generateToken');
 const sendEmail = require('../utils/sendEmail');
 const cloudinary = require('../config/cloudinary');
 const streamifier = require('streamifier');
+const { applyReferral } = require('./loyaltyController');
 
 // Google OAuth client for verifying ID tokens from the frontend
 const googleClientId = process.env.GOOGLE_CLIENT_ID;
@@ -13,7 +14,7 @@ const googleClient = googleClientId ? new OAuth2Client(googleClientId) : null;
 // Register a new user
 exports.registerUser = async (req, res, next) => {
   try {
-    const { name, email, password } = req.body;
+    const { name, email, password, referralCode } = req.body;
 
     if (!name || !email || !password) {
       return res.status(400).json({ message: 'Name, email and password are required' });
@@ -25,6 +26,30 @@ exports.registerUser = async (req, res, next) => {
     }
 
     const user = await User.create({ name, email, password });
+
+    // Handle referral
+    if (referralCode) {
+      applyReferral(referralCode, user._id).catch(() => {});
+    }
+
+    // Send welcome email with first-order coupon hint
+    sendEmail({
+      to: user.email,
+      subject: 'Welcome to Electrical Shop! ⚡',
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <h2 style="color: #003566;">Welcome, ${user.name}! ⚡</h2>
+          <p>Thank you for joining Electrical Shop — your one-stop platform for quality electrical products.</p>
+          <p>Browse our catalog and use code <strong>WELCOME10</strong> for 10% off your first order.</p>
+          <a href="${process.env.CLIENT_URL}/products" 
+             style="background: #003566; color: white; padding: 12px 24px; border-radius: 6px; text-decoration: none; display: inline-block; margin-top: 12px;">
+            Start Shopping
+          </a>
+          <hr style="margin-top: 24px;"/>
+          <p style="font-size: 12px; color: #888;">Electrical Shop</p>
+        </div>
+      `,
+    }).catch(() => {});
 
     const token = generateToken(user._id, user.role);
 
