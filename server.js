@@ -116,7 +116,6 @@ app.use('/api/recommendations', require('./routes/recommendationRoutes'));
 app.use('/api/loyalty', require('./routes/loyaltyRoutes'));
 app.use('/api/projects', require('./routes/projectRoutes'));
 app.use('/api/calculator', require('./routes/calculatorRoutes'));
-app.use('/api/warranties', require('./routes/warrantyRoutes'));
 app.use('/api/qna', require('./routes/qnaRoutes'));
 app.use('/api/products', require('./routes/flashSaleRoutes'));
 

@@ -3,7 +3,6 @@ const sendEmail = require('./sendEmail');
 const Cart = require('../models/Cart');
 const Order = require('../models/Order');
 const User = require('../models/User');
-const Warranty = require('../models/Warranty');
 const Product = require('../models/Product');
 const Coupon = require('../models/Coupon');
 const Notification = require('../models/Notification');
@@ -113,59 +112,7 @@ const runAbandonedCartRecovery = async () => {
 };
 
 // ─────────────────────────────────────────────
-// 2. Warranty Expiry Reminders — runs every day at 9:00 AM
-// ─────────────────────────────────────────────
-const runWarrantyExpiryReminders = async () => {
-  try {
-    const thirtyDaysFromNow = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
-    const now = new Date();
-
-    // Find active warranties expiring within 30 days, reminder not yet sent
-    const expiringWarranties = await Warranty.find({
-      status: 'active',
-      expiryDate: { $gte: now, $lte: thirtyDaysFromNow },
-      reminderSent: false,
-    }).populate('user', 'name email notificationPrefs');
-
-    let sent = 0;
-
-    for (const warranty of expiringWarranties) {
-      if (!warranty.user?.notificationPrefs?.warrantyReminders) continue;
-
-      const daysLeft = Math.ceil((warranty.expiryDate - now) / (1000 * 60 * 60 * 24));
-
-      await sendEmail({
-        to: warranty.user.email,
-        subject: `Warranty expiring in ${daysLeft} days — ${warranty.productName}`,
-        html: `
-          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-            <h2 style="color: #e63946;">Warranty Expiry Reminder ⚠️</h2>
-            <p>Hey <strong>${warranty.user.name}</strong>,</p>
-            <p>The warranty for <strong>${warranty.productName}</strong> expires in <strong>${daysLeft} day(s)</strong> (${warranty.expiryDate.toDateString()}).</p>
-            <p>If you have any issues with the product, file a claim before it expires.</p>
-            <a href="${process.env.CLIENT_URL}/warranty" 
-               style="background: #e63946; color: white; padding: 12px 24px; border-radius: 6px; text-decoration: none; display: inline-block; margin-top: 12px;">
-              View Warranty & File Claim
-            </a>
-            <hr style="margin-top: 24px;"/>
-            <p style="font-size: 12px; color: #888;">Electrical Shop — Warranty Management</p>
-          </div>
-        `,
-      }).catch(() => {});
-
-      warranty.reminderSent = true;
-      await warranty.save().catch(() => {});
-      sent++;
-    }
-
-    console.log(`[Cron] Warranty reminders: ${sent} sent`);
-  } catch (err) {
-    console.error('[Cron] Warranty expiry reminders error:', err.message);
-  }
-};
-
-// ─────────────────────────────────────────────
-// 3. Auto-expire flash sales — runs every hour
+// 2. Auto-expire flash sales — runs every hour
 // ─────────────────────────────────────────────
 const runFlashSaleExpiry = async () => {
   try {
@@ -246,9 +193,6 @@ const initCronJobs = () => {
   // Abandoned cart recovery: every day at 10:00 AM
   cron.schedule('0 10 * * *', runAbandonedCartRecovery, { timezone: 'Asia/Kolkata' });
 
-  // Warranty expiry reminders: every day at 9:00 AM
-  cron.schedule('0 9 * * *', runWarrantyExpiryReminders, { timezone: 'Asia/Kolkata' });
-
   // Flash sale expiry: every hour
   cron.schedule('0 * * * *', runFlashSaleExpiry);
 
@@ -258,4 +202,4 @@ const initCronJobs = () => {
   console.log('[Cron] All scheduled jobs initialized');
 };
 
-module.exports = { initCronJobs, runAbandonedCartRecovery, runWarrantyExpiryReminders, runFlashSaleExpiry };
+module.exports = { initCronJobs, runAbandonedCartRecovery, runFlashSaleExpiry };

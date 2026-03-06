@@ -4,7 +4,17 @@ const Product = require('../models/Product');
 const Notification = require('../models/Notification');
 const User = require('../models/User');
 const { awardPointsForOrder } = require('./loyaltyController');
-const { createWarrantiesForOrder } = require('./warrantyController');
+const { sendOrderConfirmationEmail, sendCancelOtpEmail } = require('../utils/sendEmail');
+const { sendCancelOtpSms } = require('../utils/sendSms');
+
+// Delivery within Tamil Nadu only.
+// Erode city or order >= ₹100 → FREE. Otherwise ₹40.
+function calcDeliveryCharge(shippingAddress, subtotal) {
+  const city = (shippingAddress.city || '').trim().toLowerCase();
+  if (city === 'erode') return 0;
+  if (subtotal >= 100)  return 0;
+  return 40;
+}
 
 // Create a new order from cart or direct items
 exports.createOrder = async (req, res, next) => {
@@ -42,11 +52,15 @@ exports.createOrder = async (req, res, next) => {
       return res.status(400).json({ message: 'No order items provided' });
     }
 
+    const deliveryCharge = calcDeliveryCharge(shippingAddress, calculatedTotal);
+    const grandTotal = Number((calculatedTotal + deliveryCharge).toFixed(2));
+
     const order = await Order.create({
       user: req.user._id,
       orderItems: itemsToUse,
       shippingAddress,
-      totalPrice: calculatedTotal,
+      deliveryCharge,
+      totalPrice: grandTotal,
       orderStatus: 'Pending',
       isPaid: false,
       paymentInfo: {
@@ -64,6 +78,15 @@ exports.createOrder = async (req, res, next) => {
     if (method === 'COD') {
       await exports.reduceStockForOrder(order._id);
     }
+
+    // Send order confirmation email — fire-and-forget (never block the response)
+    User.findById(req.user._id).select('name email').then((user) => {
+      if (user && user.email) {
+        sendOrderConfirmationEmail({ email: user.email, name: user.name, order })
+          .then(() => console.log(`[Email] Order confirmation sent to ${user.email}`))
+          .catch((err) => console.error('[Email] Failed to send order confirmation:', err.message));
+      }
+    }).catch((err) => console.error('[Email] Could not fetch user for email:', err.message));
 
     return res.status(201).json(order);
   } catch (error) {
@@ -166,8 +189,6 @@ exports.updateOrderStatus = async (req, res, next) => {
       order.deliveredAt = new Date();
       // Award loyalty points (1 pt per ₹10)
       awardPointsForOrder(order.user, order._id, order.totalPrice).catch(() => {});
-      // Create digital warranty records
-      createWarrantiesForOrder(order._id).catch(() => {});
     }
 
     await order.save();
@@ -202,6 +223,155 @@ exports.restoreStockForOrder = async (order) => {
       product.lowStock = product.stock <= 5;
       await product.save();
     }
+  }
+};
+
+// User: request OTP to cancel order — supports method: 'email' | 'sms'
+exports.requestCancelOtp = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { method = 'email' } = req.body; // 'email' or 'sms'
+
+    const order = await Order.findById(id);
+    if (!order) return res.status(404).json({ message: 'Order not found' });
+
+    if (order.user.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ message: 'Not authorised' });
+    }
+
+    const cancellableStatuses = ['Pending', 'Confirmed'];
+    if (!cancellableStatuses.includes(order.orderStatus)) {
+      return res.status(400).json({
+        message: `Order cannot be cancelled once it is ${order.orderStatus}.`,
+      });
+    }
+
+    // Generate 6-digit OTP valid for 10 min
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    order.cancelOtp = otp;
+    order.cancelOtpExpires = new Date(Date.now() + 10 * 60 * 1000);
+    await order.save();
+
+    const user = await User.findById(req.user._id).select('name email phone');
+    if (!user) return res.status(500).json({ message: 'Could not retrieve user details' });
+
+    const orderId = id.slice(-8).toUpperCase();
+
+    if (method === 'sms') {
+      // ── SMS OTP via Fast2SMS ──
+      const phone = (user.phone || '').replace(/\D/g, '').slice(-10);
+      if (!phone || phone.length !== 10) {
+        return res.status(400).json({
+          message: 'No valid phone number on your account. Please use Email OTP instead.',
+        });
+      }
+      sendCancelOtpSms({ phone, otp, orderId })
+        .then(() => console.log(`[SMS] Cancel OTP sent to ${phone}`))
+        .catch((err) => console.error('[SMS] Cancel OTP failed:', err.message));
+
+      const masked = phone.slice(0, 2) + '******' + phone.slice(-2);
+      return res.json({ message: `OTP sent via SMS to ${masked}`, via: 'sms' });
+    }
+
+    // ── Email OTP (default) ──
+    if (!user.email) return res.status(500).json({ message: 'Could not retrieve user email' });
+
+    sendCancelOtpEmail({ email: user.email, name: user.name, otp, orderId })
+      .then(() => console.log(`[Email] Cancel OTP sent to ${user.email}`))
+      .catch((err) => console.error('[Email] Cancel OTP email failed:', err.message));
+
+    const [localPart, domain] = user.email.split('@');
+    const masked = localPart.slice(0, 2) + '***@' + domain;
+    return res.json({ message: `OTP sent to ${masked}`, via: 'email' });
+
+  } catch (error) {
+    next(error);
+  }
+};
+
+// User: verify OTP and confirm cancellation
+exports.verifyCancelOtp = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { otp, reason } = req.body;
+
+    // Must select OTP fields explicitly (they have select:false)
+    const order = await Order.findById(id)
+      .select('+cancelOtp +cancelOtpExpires')
+      .populate('user', 'name email');
+
+    if (!order) return res.status(404).json({ message: 'Order not found' });
+
+    if (order.user._id.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ message: 'Not authorised to cancel this order' });
+    }
+
+    if (!order.cancelOtp || !order.cancelOtpExpires) {
+      return res.status(400).json({ message: 'No OTP found. Please request a new OTP.' });
+    }
+
+    if (new Date() > order.cancelOtpExpires) {
+      return res.status(400).json({ message: 'OTP has expired. Please request a new OTP.' });
+    }
+
+    if (order.cancelOtp !== otp.toString().trim()) {
+      return res.status(400).json({ message: 'Incorrect OTP. Please try again.' });
+    }
+
+    // OTP valid — clear it and proceed with cancellation
+    order.cancelOtp = undefined;
+    order.cancelOtpExpires = undefined;
+
+    const cancellableStatuses = ['Pending', 'Confirmed'];
+    if (!cancellableStatuses.includes(order.orderStatus)) {
+      return res.status(400).json({
+        message: `Order cannot be cancelled once it is ${order.orderStatus}.`,
+      });
+    }
+
+    order.orderStatus = 'Cancelled';
+    order.cancelReason = reason?.trim() || 'No reason provided';
+    order.cancelledAt = new Date();
+    await order.save();
+
+    // Restore stock
+    const isCOD = order.paymentInfo?.method === 'COD';
+    const isRazorpayPaid = order.paymentInfo?.method === 'Razorpay' && order.isPaid;
+    if (isCOD || isRazorpayPaid) {
+      await exports.restoreStockForOrder(order);
+    }
+
+    // Notify all admins
+    try {
+      const admins = await User.find({ role: 'admin' }).select('_id');
+      const notifications = admins.map((admin) => ({
+        user: admin._id,
+        title: 'Order Cancellation',
+        message: `Order #${id.slice(-8).toUpperCase()} by ${order.user.name} has been cancelled. Method: ${order.paymentInfo?.method || 'N/A'}. Reason: ${order.cancelReason}`,
+        type: 'order',
+        link: `/admin/orders`,
+      }));
+      if (notifications.length > 0) await Notification.insertMany(notifications);
+    } catch (_) {}
+
+    // Notify the user
+    try {
+      const userMsg = isRazorpayPaid
+        ? `Your order #${id.slice(-8).toUpperCase()} has been cancelled. A refund of ₹${order.totalPrice.toLocaleString('en-IN')} will be credited within 5–7 business days.`
+        : `Your order #${id.slice(-8).toUpperCase()} has been successfully cancelled. No charge has been made.`;
+
+      await Notification.create({
+        user: req.user._id,
+        title: 'Order Cancelled',
+        message: userMsg,
+        type: 'order',
+        link: `/orders/${id}`,
+      });
+    } catch (_) {}
+
+    return res.json({ message: 'Order cancelled successfully', order });
+  } catch (error) {
+    next(error);
   }
 };
 

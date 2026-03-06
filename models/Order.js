@@ -63,10 +63,14 @@ const orderSchema = new mongoose.Schema(
       default: 'Pending',
       index: true,
     },
+    deliveryCharge: { type: Number, default: 0, min: 0 },
     isPaid: { type: Boolean, default: false },
     paidAt: { type: Date },
     cancelReason: { type: String, default: '' },
     cancelledAt: { type: Date },
+    // OTP for cancellation verification
+    cancelOtp:        { type: String, select: false },
+    cancelOtpExpires: { type: Date,   select: false },
   },
   { timestamps: true }
 );

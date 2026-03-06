@@ -6,6 +6,8 @@ const {
   getAllOrders,
   updateOrderStatus,
   cancelOrder,
+  requestCancelOtp,
+  verifyCancelOtp,
 } = require('../controllers/orderController');
 const { protect } = require('../middleware/authMiddleware');
 const { admin } = require('../middleware/adminMiddleware');
@@ -17,6 +19,8 @@ router.use(protect);
 router.post('/', createOrder);
 router.get('/my', getMyOrders);
 router.get('/:id', getOrderById);
+router.post('/:id/cancel/request-otp', requestCancelOtp);
+router.post('/:id/cancel/verify-otp',  verifyCancelOtp);
 router.patch('/:id/cancel', cancelOrder);
 
 // Admin

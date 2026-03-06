@@ -2,7 +2,9 @@ const crypto = require('crypto');
 const razorpay = require('../config/razorpay');
 const Payment = require('../models/Payment');
 const Order = require('../models/Order');
+const User = require('../models/User');
 const { reduceStockForOrder } = require('./orderController');
+const { sendOrderConfirmationEmail } = require('../utils/sendEmail');
 
 // Create Razorpay order for an existing order
 exports.createRazorpayOrder = async (req, res, next) => {
@@ -105,6 +107,15 @@ exports.verifyPayment = async (req, res, next) => {
 
       // Reduce stock after successful payment confirmation
       await reduceStockForOrder(order._id);
+
+      // Send order confirmation email — fire-and-forget (never block the response)
+      User.findById(order.user).select('name email').then((user) => {
+        if (user && user.email) {
+          sendOrderConfirmationEmail({ email: user.email, name: user.name, order })
+            .then(() => console.log(`[Email] Order confirmation sent to ${user.email}`))
+            .catch((err) => console.error('[Email] Failed to send order confirmation:', err.message));
+        }
+      }).catch((err) => console.error('[Email] Could not fetch user for email:', err.message));
     }
 
     return res.json({
