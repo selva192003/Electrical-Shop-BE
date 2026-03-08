@@ -12,7 +12,10 @@ const {
   deleteAddress,
   setDefaultAddress,
   forgotPassword,
+  verifyOtp,
   resetPassword,
+  verifyEmail,
+  resendVerification,
   getAllUsers,
   blockUser,
   unblockUser,
@@ -28,7 +31,10 @@ const router = express.Router();
 router.post('/register', registerUser);
 router.post('/login', loginUser);
 router.post('/forgot-password', forgotPassword);
-router.post('/reset-password/:token', resetPassword);
+router.post('/verify-otp', verifyOtp);
+router.post('/reset-password', resetPassword);
+router.post('/verify-email', verifyEmail);
+router.post('/resend-verification', resendVerification);
 router.post('/google-login', googleLogin);
 
 // Authenticated user profile

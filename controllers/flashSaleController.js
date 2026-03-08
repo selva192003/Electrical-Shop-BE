@@ -72,7 +72,7 @@ exports.notifyRestockSubscribers = async (product) => {
               Shop Now
             </a>
             <hr style="margin-top: 24px;"/>
-            <p style="font-size: 12px; color: #888;">Electrical Shop — Restock Alert</p>
+            <p style="font-size: 12px; color: #888;">Sri Murugan Electricals &amp; Hardwares — Restock Alert</p>
           </div>
         `,
       }).catch(() => {});

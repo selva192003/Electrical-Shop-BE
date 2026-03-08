@@ -88,9 +88,20 @@ const authLimiter = rateLimit({
   message: { message: 'Too many login attempts, please try again later.' },
 });
 
+const otpLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 5,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { message: 'Too many OTP requests, please try again in 15 minutes.' },
+});
+
 app.use('/api', limiter);
 app.use('/api/users/login', authLimiter);
 app.use('/api/users/register', authLimiter);
+app.use('/api/users/forgot-password', otpLimiter);
+app.use('/api/users/verify-otp', otpLimiter);
+app.use('/api/users/resend-verification', otpLimiter);
 
 // ─── Routes ─────────────────────────────────────────────────────────────────
 app.get('/api/health', (req, res) => {

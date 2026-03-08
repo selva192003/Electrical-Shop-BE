@@ -32,8 +32,8 @@ const userSchema = new mongoose.Schema(
     role: { type: String, enum: ['user', 'admin'], default: 'user' },
     addresses: [addressSchema],
     isBlocked: { type: Boolean, default: false },
-    resetPasswordToken: { type: String },
-    resetPasswordExpires: { type: Date },
+    resetPasswordOtp:     { type: String, select: false },
+    resetPasswordOtpExpires: { type: Date,   select: false },
     // Profile enhancements
     profileImage: { type: String, default: '' },
     phone: { type: String, default: '' },

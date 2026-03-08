@@ -88,7 +88,7 @@ const runAbandonedCartRecovery = async () => {
               Complete My Purchase
             </a>
             <hr style="margin-top: 24px;"/>
-            <p style="font-size: 12px; color: #888;">Electrical Shop — Cart Recovery</p>
+            <p style="font-size: 12px; color: #888;">Sri Murugan Electricals &amp; Hardwares — Cart Recovery</p>
           </div>
         `,
       }).catch(() => {});

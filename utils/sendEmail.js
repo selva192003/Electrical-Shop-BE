@@ -10,7 +10,7 @@ const sendEmail = async ({ to, subject, html }) => {
   if (!apiKey) throw new Error('BREVO_API_KEY is not set in .env');
 
   const senderEmail = process.env.EMAIL_FROM_ADDRESS || 'srimuruganelectricals75@gmail.com';
-  const senderName  = process.env.EMAIL_FROM_NAME    || 'Electrical Shop';
+  const senderName  = process.env.EMAIL_FROM_NAME    || 'Sri Murugan Electricals & Hardwares';
 
   const payload = {
     sender: { name: senderName, email: senderEmail },
@@ -83,8 +83,8 @@ const sendOrderConfirmationEmail = async ({ email, name, order }) => {
           <!-- Header -->
           <tr>
             <td style="background:linear-gradient(135deg,#1e40af 0%,#3b82f6 100%);padding:36px 40px;text-align:center;">
-              <h1 style="margin:0;color:#ffffff;font-size:26px;font-weight:700;letter-spacing:-0.5px;">⚡ Electrical Shop</h1>
-              <p style="margin:8px 0 0;color:#bfdbfe;font-size:14px;">Your one-stop electrical store</p>
+              <h1 style="margin:0;color:#ffffff;font-size:26px;font-weight:700;letter-spacing:-0.5px;">⚡ Sri Murugan Electricals &amp; Hardwares</h1>
+              <p style="margin:8px 0 0;color:#bfdbfe;font-size:14px;">Your trusted electrical &amp; hardware store — Perundurai</p>
             </td>
           </tr>
 
@@ -193,7 +193,7 @@ const sendOrderConfirmationEmail = async ({ email, name, order }) => {
           <!-- Bottom bar -->
           <tr>
             <td style="background:#f9fafb;padding:20px 40px;text-align:center;border-top:1px solid #e5e7eb;">
-              <p style="margin:0;font-size:12px;color:#9ca3af;">© ${new Date().getFullYear()} Electrical Shop. All rights reserved.</p>
+              <p style="margin:0;font-size:12px;color:#9ca3af;">© ${new Date().getFullYear()} Sri Murugan Electricals &amp; Hardwares. All rights reserved.</p>
             </td>
           </tr>
 
@@ -205,7 +205,7 @@ const sendOrderConfirmationEmail = async ({ email, name, order }) => {
 
   await sendEmail({
     to: email,
-    subject: `Order Confirmed – #${orderId} | Electrical Shop`,
+    subject: `Order Confirmed – #${orderId} | Sri Murugan Electricals & Hardwares`,
     html,
   });
 };
@@ -224,7 +224,7 @@ const sendCancelOtpEmail = async ({ email, name, otp, orderId }) => {
           <!-- Header -->
           <tr>
             <td style="background:linear-gradient(135deg,#dc2626 0%,#ef4444 100%);padding:32px 40px;text-align:center;">
-              <h1 style="margin:0;color:#ffffff;font-size:24px;font-weight:700;">⚡ Electrical Shop</h1>
+              <h1 style="margin:0;color:#ffffff;font-size:24px;font-weight:700;">⚡ Sri Murugan Electricals &amp; Hardwares</h1>
               <p style="margin:8px 0 0;color:#fecaca;font-size:13px;">Order Cancellation Request</p>
             </td>
           </tr>
@@ -256,7 +256,7 @@ const sendCancelOtpEmail = async ({ email, name, otp, orderId }) => {
           <!-- Footer -->
           <tr>
             <td style="background:#f9fafb;padding:16px 40px;text-align:center;border-top:1px solid #e5e7eb;">
-              <p style="margin:0;font-size:12px;color:#9ca3af;">© ${new Date().getFullYear()} Electrical Shop. All rights reserved.</p>
+              <p style="margin:0;font-size:12px;color:#9ca3af;">© ${new Date().getFullYear()} Sri Murugan Electricals &amp; Hardwares. All rights reserved.</p>
             </td>
           </tr>
 
@@ -268,7 +268,47 @@ const sendCancelOtpEmail = async ({ email, name, otp, orderId }) => {
 
   await sendEmail({
     to: email,
-    subject: `${otp} is your OTP to cancel Order #${orderId} | Electrical Shop`,
+    subject: `${otp} is your OTP to cancel Order #${orderId} | Sri Murugan Electricals & Hardwares`,
+    html,
+  });
+};
+
+// ─── Forgot Password OTP ───────────────────────────────────────────────────
+const sendForgotPasswordOtpEmail = async ({ email, name, otp }) => {
+  const html = `
+  <!DOCTYPE html><html><head><meta charset="UTF-8">
+  <style>
+    body{font-family:Arial,sans-serif;background:#f4f4f4;margin:0;padding:0}
+    .wrap{max-width:520px;margin:32px auto;background:#fff;border-radius:10px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,.08)}
+    .header{background:#f97316;padding:28px 32px;text-align:center}
+    .header h1{color:#fff;font-size:1.3rem;margin:0}   
+    .body{padding:28px 32px}
+    .body p{color:#444;font-size:.95rem;line-height:1.6;margin:0 0 16px}
+    .otp-box{background:#fff7ed;border:2px dashed #f97316;border-radius:8px;text-align:center;padding:20px 0;margin:20px 0}
+    .otp-box .otp-code{font-size:2.2rem;font-weight:700;letter-spacing:8px;color:#ea580c}
+    .otp-box .otp-label{font-size:.8rem;color:#9a3412;margin-top:6px}
+    .note{background:#fef9c3;border-left:4px solid #fbbf24;padding:10px 16px;border-radius:4px;font-size:.85rem;color:#92400e;margin:16px 0}
+    .footer{padding:16px 32px;background:#f8fafc;text-align:center;font-size:.78rem;color:#94a3b8}
+  </style></head><body>
+  <div class="wrap">
+    <div class="header"><h1>⚡ Password Reset OTP</h1></div>
+    <div class="body">
+      <p>Hi <strong>${name || 'there'}</strong>,</p>
+      <p>We received a request to reset your password for your <strong>Sri Murugan Electricals &amp; Hardwares</strong> account. Use the OTP below to continue:</p>
+      <div class="otp-box">
+        <div class="otp-code">${otp}</div>
+        <div class="otp-label">One-Time Password — valid for 10 minutes</div>
+      </div>
+      <div class="note">If you did not request this, please ignore this email. Your password will remain unchanged.</div>
+      <p>For security, never share this OTP with anyone.</p>
+    </div>
+    <div class="footer">© ${new Date().getFullYear()} Sri Murugan Electricals &amp; Hardwares &nbsp;|&nbsp; This is an automated message, please do not reply.</div>
+  </div>
+  </body></html>`;
+
+  await sendEmail({
+    to: email,
+    subject: `${otp} is your Password Reset OTP | Sri Murugan Electricals & Hardwares`,
     html,
   });
 };
@@ -276,3 +316,53 @@ const sendCancelOtpEmail = async ({ email, name, otp, orderId }) => {
 module.exports = sendEmail;
 module.exports.sendOrderConfirmationEmail = sendOrderConfirmationEmail;
 module.exports.sendCancelOtpEmail = sendCancelOtpEmail;
+module.exports.sendForgotPasswordOtpEmail = sendForgotPasswordOtpEmail;
+
+// Send email verification link
+const sendEmailVerificationEmail = async ({ email, name, verificationLink }) => {
+  const html = `
+  <!DOCTYPE html><html><head><meta charset="UTF-8">
+  <style>
+    body{font-family:Arial,sans-serif;background:#f4f6f9;margin:0;padding:0}
+    .wrap{max-width:540px;margin:32px auto;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,.08)}
+    .header{background:linear-gradient(135deg,#0b1f3b 0%,#1a3a6b 100%);padding:36px 40px;text-align:center}
+    .header h1{color:#fff;font-size:1.3rem;margin:0;letter-spacing:-0.3px}
+    .header p{color:#93c5fd;font-size:.85rem;margin:8px 0 0}
+    .body{padding:36px 40px}
+    .body p{color:#374151;font-size:.95rem;line-height:1.7;margin:0 0 16px}
+    .icon-circle{width:72px;height:72px;border-radius:50%;background:#eff6ff;border:2px solid #bfdbfe;display:flex;align-items:center;justify-content:center;margin:0 auto 24px;font-size:2rem;line-height:72px;text-align:center}
+    .verify-btn{display:inline-block;background:#0b1f3b;color:#fff;text-decoration:none;padding:14px 36px;border-radius:8px;font-size:1rem;font-weight:700;margin:8px 0 24px;letter-spacing:0.3px}
+    .verify-btn:hover{background:#142f5c}
+    .link-box{background:#f9fafb;border:1px solid #e5e7eb;border-radius:6px;padding:12px 16px;font-size:.78rem;color:#6b7280;word-break:break-all;margin-bottom:16px}
+    .note{background:#fefce8;border-left:4px solid #f5b400;padding:12px 16px;border-radius:4px;font-size:.85rem;color:#854d0e;margin-bottom:16px}
+    .footer{padding:20px 40px;background:#f8fafc;text-align:center;font-size:.78rem;color:#9ca3af;border-top:1px solid #e5e7eb}
+  </style></head><body>
+  <div class="wrap">
+    <div class="header">
+      <h1>⚡ Sri Murugan Electricals &amp; Hardwares</h1>
+      <p>Verify your email to activate your account</p>
+    </div>
+    <div class="body">
+      <div class="icon-circle">✉️</div>
+      <p>Hi <strong>${name || 'there'}</strong>,</p>
+      <p>Thank you for creating an account with <strong>Sri Murugan Electricals &amp; Hardwares</strong>! To complete your registration, please verify your email address by clicking the button below.</p>
+      <div style="text-align:center">
+        <a href="${verificationLink}" class="verify-btn">Verify Email Address</a>
+      </div>
+      <p style="font-size:.85rem;color:#6b7280;">If the button doesn't work, copy and paste this link into your browser:</p>
+      <div class="link-box">${verificationLink}</div>
+      <div class="note">This link will expire in <strong>24 hours</strong>. If you did not create an account, you can safely ignore this email.</div>
+      <p style="font-size:.85rem;color:#6b7280;">For security, never share this link with anyone.</p>
+    </div>
+    <div class="footer">© ${new Date().getFullYear()} Sri Murugan Electricals &amp; Hardwares &nbsp;|&nbsp; Perundurai, Tamil Nadu</div>
+  </div>
+  </body></html>`;
+
+  await sendEmail({
+    to: email,
+    subject: 'Verify your email | Sri Murugan Electricals & Hardwares',
+    html,
+  });
+};
+
+module.exports.sendEmailVerificationEmail = sendEmailVerificationEmail;

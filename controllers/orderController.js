@@ -5,7 +5,6 @@ const Notification = require('../models/Notification');
 const User = require('../models/User');
 const { awardPointsForOrder } = require('./loyaltyController');
 const { sendOrderConfirmationEmail, sendCancelOtpEmail } = require('../utils/sendEmail');
-const { sendCancelOtpSms } = require('../utils/sendSms');
 
 // Delivery within Tamil Nadu only.
 // Erode city or order >= ₹100 → FREE. Otherwise ₹40.
@@ -230,7 +229,6 @@ exports.restoreStockForOrder = async (order) => {
 exports.requestCancelOtp = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const { method = 'email' } = req.body; // 'email' or 'sms'
 
     const order = await Order.findById(id);
     if (!order) return res.status(404).json({ message: 'Order not found' });
@@ -252,30 +250,12 @@ exports.requestCancelOtp = async (req, res, next) => {
     order.cancelOtpExpires = new Date(Date.now() + 10 * 60 * 1000);
     await order.save();
 
-    const user = await User.findById(req.user._id).select('name email phone');
-    if (!user) return res.status(500).json({ message: 'Could not retrieve user details' });
+    const user = await User.findById(req.user._id).select('name email');
+    if (!user || !user.email) return res.status(500).json({ message: 'Could not retrieve user email' });
 
     const orderId = id.slice(-8).toUpperCase();
 
-    if (method === 'sms') {
-      // ── SMS OTP via Fast2SMS ──
-      const phone = (user.phone || '').replace(/\D/g, '').slice(-10);
-      if (!phone || phone.length !== 10) {
-        return res.status(400).json({
-          message: 'No valid phone number on your account. Please use Email OTP instead.',
-        });
-      }
-      sendCancelOtpSms({ phone, otp, orderId })
-        .then(() => console.log(`[SMS] Cancel OTP sent to ${phone}`))
-        .catch((err) => console.error('[SMS] Cancel OTP failed:', err.message));
-
-      const masked = phone.slice(0, 2) + '******' + phone.slice(-2);
-      return res.json({ message: `OTP sent via SMS to ${masked}`, via: 'sms' });
-    }
-
-    // ── Email OTP (default) ──
-    if (!user.email) return res.status(500).json({ message: 'Could not retrieve user email' });
-
+    // ── Email OTP ──
     sendCancelOtpEmail({ email: user.email, name: user.name, otp, orderId })
       .then(() => console.log(`[Email] Cancel OTP sent to ${user.email}`))
       .catch((err) => console.error('[Email] Cancel OTP email failed:', err.message));

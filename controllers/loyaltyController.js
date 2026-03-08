@@ -59,7 +59,7 @@ exports.awardPointsForOrder = async (userId, orderId, orderTotal) => {
             <p>Total balance: <strong>${user.loyaltyPoints} points</strong>${tierMsg}</p>
             <p>Redeem 100 points = ₹10 discount on your next order.</p>
             <hr/>
-            <p style="font-size: 12px; color: #888;">Electrical Shop Loyalty Program</p>
+            <p style="font-size: 12px; color: #888;">Sri Murugan Electricals &amp; Hardwares Loyalty Program</p>
           </div>
         `,
       }).catch(() => {});

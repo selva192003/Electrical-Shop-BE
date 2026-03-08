@@ -16,7 +16,7 @@ if (!process.env.BREVO_API_KEY || process.env.BREVO_API_KEY === 'your_brevo_api_
 }
 
 const senderEmail = process.env.EMAIL_FROM_ADDRESS || 'srimuruganelectricals75@gmail.com';
-const senderName  = process.env.EMAIL_FROM_NAME    || 'Electrical Shop';
+const senderName  = process.env.EMAIL_FROM_NAME    || 'Sri Murugan Electricals & Hardwares';
 
 console.log(`\nSending test email to: ${to}`);
 console.log(`From: ${senderName} <${senderEmail}>`);
@@ -32,7 +32,7 @@ fetch('https://api.brevo.com/v3/smtp/email', {
   body: JSON.stringify({
     sender: { name: senderName, email: senderEmail },
     to: [{ email: to }],
-    subject: '✅ Email Test — Electrical Shop',
+    subject: '✅ Email Test — Sri Murugan Electricals & Hardwares',
     htmlContent: '<h2>Email is working correctly!</h2><p>Your order confirmation emails will be delivered to customers.</p>',
   }),
 })

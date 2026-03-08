@@ -3,6 +3,7 @@ const { OAuth2Client } = require('google-auth-library');
 const User = require('../models/User');
 const generateToken = require('../utils/generateToken');
 const sendEmail = require('../utils/sendEmail');
+const { sendForgotPasswordOtpEmail, sendEmailVerificationEmail } = require('../utils/sendEmail');
 const cloudinary = require('../config/cloudinary');
 const streamifier = require('streamifier');
 const { applyReferral } = require('./loyaltyController');
@@ -25,43 +26,34 @@ exports.registerUser = async (req, res, next) => {
       return res.status(400).json({ message: 'User already exists with this email' });
     }
 
-    const user = await User.create({ name, email, password });
+    // Generate email verification token
+    const verificationToken = crypto.randomBytes(32).toString('hex');
+    const verificationExpires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
+
+    const user = await User.create({
+      name,
+      email,
+      password,
+      emailVerified: false,
+      emailVerificationToken: verificationToken,
+      emailVerificationExpires: verificationExpires,
+    });
 
     // Handle referral
     if (referralCode) {
       applyReferral(referralCode, user._id).catch(() => {});
     }
 
-    // Send welcome email with first-order coupon hint
-    sendEmail({
-      to: user.email,
-      subject: 'Welcome to Electrical Shop! ⚡',
-      html: `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-          <h2 style="color: #003566;">Welcome, ${user.name}! ⚡</h2>
-          <p>Thank you for joining Electrical Shop — your one-stop platform for quality electrical products.</p>
-          <p>Browse our catalog and use code <strong>WELCOME10</strong> for 10% off your first order.</p>
-          <a href="${process.env.CLIENT_URL}/products" 
-             style="background: #003566; color: white; padding: 12px 24px; border-radius: 6px; text-decoration: none; display: inline-block; margin-top: 12px;">
-            Start Shopping
-          </a>
-          <hr style="margin-top: 24px;"/>
-          <p style="font-size: 12px; color: #888;">Electrical Shop</p>
-        </div>
-      `,
-    }).catch(() => {});
-
-    const token = generateToken(user._id, user.role);
+    // Send verification email
+    const verificationLink = `${process.env.CLIENT_URL}/verify-email?token=${verificationToken}`;
+    sendEmailVerificationEmail({ email: user.email, name: user.name, verificationLink })
+      .then(() => console.log(`[Email] Verification email sent to ${user.email}`))
+      .catch((err) => console.error('[Email] Verification email failed:', err.message));
 
     return res.status(201).json({
-      message: 'User registered successfully',
-      token,
-      user: {
-        id: user._id,
-        name: user.name,
-        email: user.email,
-        role: user.role,
-      },
+      message: 'Registration successful! Please check your email to verify your account.',
+      requiresVerification: true,
+      email: user.email,
     });
   } catch (error) {
     next(error);
@@ -91,6 +83,15 @@ exports.loginUser = async (req, res, next) => {
 
     if (!isMatch) {
       return res.status(401).json({ message: 'Invalid email or password' });
+    }
+
+    // Block login if email is not verified (local accounts only)
+    if (!user.emailVerified && user.provider !== 'google') {
+      return res.status(403).json({
+        message: 'Please verify your email address before logging in.',
+        code: 'EMAIL_NOT_VERIFIED',
+        email: user.email,
+      });
     }
 
     const token = generateToken(user._id, user.role);
@@ -329,67 +330,182 @@ exports.setDefaultAddress = async (req, res, next) => {
   }
 };
 
-// Forgot password - send reset email
+// Forgot password — send OTP to email
 exports.forgotPassword = async (req, res, next) => {
   try {
     const { email } = req.body;
+    if (!email) return res.status(400).json({ message: 'Email is required' });
 
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ email: email.toLowerCase().trim() });
 
     if (!user) {
-      return res.status(404).json({ message: 'No user found with this email' });
+      return res.status(404).json({ message: 'This email is not registered.' });
     }
 
-    const resetToken = crypto.randomBytes(32).toString('hex');
-    const hashedToken = crypto.createHash('sha256').update(resetToken).digest('hex');
+    if (user.provider === 'google') {
+      return res.status(400).json({
+        message: 'This account uses Google Sign-In. Please use "Continue with Google" to log in.',
+      });
+    }
 
-    user.resetPasswordToken = hashedToken;
-    user.resetPasswordExpires = Date.now() + 1000 * 60 * 60; // 1 hour
-
+    // Generate 6-digit OTP valid for 10 minutes
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    user.resetPasswordOtp = otp;
+    user.resetPasswordOtpExpires = new Date(Date.now() + 10 * 60 * 1000);
     await user.save();
 
-    const resetUrl = `${process.env.CLIENT_URL}/reset-password/${resetToken}`;
+    // Fire-and-forget
+    sendForgotPasswordOtpEmail({ email: user.email, name: user.name, otp })
+      .then(() => console.log(`[Email] Password reset OTP sent to ${user.email}`))
+      .catch((err) => console.error('[Email] Password reset OTP failed:', err.message));
 
-    const html = `<p>You requested a password reset.</p>
-      <p>Click the link below to reset your password. This link is valid for 1 hour.</p>
-      <a href="${resetUrl}">${resetUrl}</a>`;
-
-    await sendEmail({
-      to: user.email,
-      subject: 'Password Reset - Electrical Shop',
-      html,
-    });
-
-    return res.json({ message: 'Password reset email sent' });
+    return res.json({ message: 'OTP has been sent to your email.' });
   } catch (error) {
     next(error);
   }
 };
 
-// Reset password
+// Verify OTP — checks OTP is valid without consuming it
+exports.verifyOtp = async (req, res, next) => {
+  try {
+    const { email, otp } = req.body;
+
+    if (!email || !otp) {
+      return res.status(400).json({ message: 'Email and OTP are required' });
+    }
+
+    const user = await User.findOne({ email: email.toLowerCase().trim() })
+      .select('+resetPasswordOtp +resetPasswordOtpExpires');
+
+    if (!user || !user.resetPasswordOtp) {
+      return res.status(400).json({ message: 'Invalid OTP. Please try again.' });
+    }
+
+    if (user.resetPasswordOtpExpires < new Date()) {
+      return res.status(400).json({ message: 'OTP expired. Request a new code.' });
+    }
+
+    if (user.resetPasswordOtp !== otp) {
+      return res.status(400).json({ message: 'Invalid OTP. Please try again.' });
+    }
+
+    return res.json({ message: 'OTP verified successfully.' });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Reset password — verify OTP + set new password in one step
 exports.resetPassword = async (req, res, next) => {
   try {
-    const { token } = req.params;
-    const { password } = req.body;
+    const { email, otp, password } = req.body;
 
-    const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
+    if (!email || !otp || !password) {
+      return res.status(400).json({ message: 'Email, OTP and new password are required' });
+    }
+    if (password.length < 8) {
+      return res.status(400).json({ message: 'Password must be at least 8 characters' });
+    }
 
-    const user = await User.findOne({
-      resetPasswordToken: hashedToken,
-      resetPasswordExpires: { $gt: Date.now() },
-    });
+    const user = await User.findOne({ email: email.toLowerCase().trim() })
+      .select('+resetPasswordOtp +resetPasswordOtpExpires');
 
     if (!user) {
-      return res.status(400).json({ message: 'Invalid or expired reset token' });
+      return res.status(400).json({ message: 'Invalid or expired OTP' });
+    }
+
+    if (
+      !user.resetPasswordOtp ||
+      !user.resetPasswordOtpExpires ||
+      user.resetPasswordOtp !== otp ||
+      user.resetPasswordOtpExpires < new Date()
+    ) {
+      return res.status(400).json({ message: 'Invalid or expired OTP' });
     }
 
     user.password = password;
-    user.resetPasswordToken = undefined;
-    user.resetPasswordExpires = undefined;
-
+    user.resetPasswordOtp = undefined;
+    user.resetPasswordOtpExpires = undefined;
     await user.save();
 
-    return res.json({ message: 'Password reset successful' });
+    return res.json({ message: 'Password reset successful. You can now log in.' });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Verify email via token from the verification link
+exports.verifyEmail = async (req, res, next) => {
+  try {
+    const { token } = req.body;
+    if (!token) return res.status(400).json({ message: 'Verification token is required' });
+
+    const user = await User.findOne({ emailVerificationToken: token });
+
+    if (!user) {
+      return res.status(400).json({ message: 'Invalid verification link.' });
+    }
+
+    if (user.emailVerified) {
+      return res.json({ message: 'Email already verified. You can log in.' });
+    }
+
+    if (user.emailVerificationExpires < new Date()) {
+      return res.status(400).json({
+        message: 'Verification link has expired.',
+        code: 'TOKEN_EXPIRED',
+        email: user.email,
+      });
+    }
+
+    user.emailVerified = true;
+    user.emailVerificationToken = undefined;
+    user.emailVerificationExpires = undefined;
+    await user.save();
+
+    // Send welcome email now that they have verified
+    sendEmail({
+      to: user.email,
+      subject: 'Welcome to Sri Murugan Electricals & Hardwares! ⚡',
+      html: `<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;"><h2 style="color:#003566;">Email verified! Welcome, ${user.name} ⚡</h2><p>Your account is now active. Use code <strong>WELCOME10</strong> for 10% off your first order.</p><a href="${process.env.CLIENT_URL}/products" style="background:#003566;color:white;padding:12px 24px;border-radius:6px;text-decoration:none;display:inline-block;margin-top:12px;">Start Shopping</a></div>`,
+    }).catch(() => {});
+
+    return res.json({ message: 'Email verified successfully! You can now log in.' });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Resend verification email
+exports.resendVerification = async (req, res, next) => {
+  try {
+    const { email } = req.body;
+    if (!email) return res.status(400).json({ message: 'Email is required' });
+
+    const user = await User.findOne({ email: email.toLowerCase().trim() });
+
+    if (!user) return res.status(404).json({ message: 'No account found with this email.' });
+
+    if (user.emailVerified) {
+      return res.status(400).json({ message: 'This email is already verified.' });
+    }
+
+    if (user.provider === 'google') {
+      return res.status(400).json({ message: 'Google accounts do not require email verification.' });
+    }
+
+    // Generate a fresh token
+    const newToken = crypto.randomBytes(32).toString('hex');
+    user.emailVerificationToken = newToken;
+    user.emailVerificationExpires = new Date(Date.now() + 24 * 60 * 60 * 1000);
+    await user.save();
+
+    const verificationLink = `${process.env.CLIENT_URL}/verify-email?token=${newToken}`;
+    sendEmailVerificationEmail({ email: user.email, name: user.name, verificationLink })
+      .then(() => console.log(`[Email] Resent verification email to ${user.email}`))
+      .catch((err) => console.error('[Email] Resend verification failed:', err.message));
+
+    return res.json({ message: 'Verification email resent. Please check your inbox.' });
   } catch (error) {
     next(error);
   }
@@ -476,8 +592,7 @@ exports.googleLogin = async (req, res, next) => {
     let user = await User.findOne({ email });
 
     if (!user) {
-      // Create a new user linked to Google; password is a random string and
-      // is never used directly because login happens through Google.
+      // Create a new user linked to Google — Google already verifies the email.
       const randomPassword = crypto.randomBytes(32).toString('hex');
       user = await User.create({
         name: name || email,
@@ -485,7 +600,15 @@ exports.googleLogin = async (req, res, next) => {
         password: randomPassword,
         provider: 'google',
         googleId,
+        emailVerified: true,
       });
+
+      // Send welcome email for new Google sign-ups
+      sendEmail({
+        to: user.email,
+        subject: 'Welcome to Sri Murugan Electricals & Hardwares! ⚡',
+        html: `<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;"><h2 style="color:#003566;">Welcome, ${user.name}! ⚡</h2><p>Thank you for joining Sri Murugan Electricals &amp; Hardwares via Google.</p><p>Use code <strong>WELCOME10</strong> for 10% off your first order.</p></div>`,
+      }).catch(() => {});
     } else {
       // Existing user: ensure they are not blocked and, if created locally,
       // keep them usable while still allowing Google login.

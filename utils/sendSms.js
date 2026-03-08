@@ -47,7 +47,7 @@ const sendSms = async (phone, message) => {
  * Send cancel OTP via SMS.
  */
 const sendCancelOtpSms = async ({ phone, otp, orderId }) => {
-  const message = `Your OTP to cancel Order #${orderId} on Electrical Shop is ${otp}. Valid for 10 minutes. Do not share with anyone.`;
+  const message = `Your OTP to cancel Order #${orderId} on Sri Murugan Electricals & Hardwares is ${otp}. Valid for 10 minutes. Do not share with anyone.`;
   return sendSms(phone, message);
 };
 
