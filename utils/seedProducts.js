@@ -11,9 +11,6 @@ const connectDB = require('../config/db');
 const Category = require('../models/Category');
 const Product = require('../models/Product');
 
-const placeholder = (name) =>
-  `https://placehold.co/600x400/0b1f3b/f5b400?text=${encodeURIComponent(name)}`;
-
 const categories = [
   { name: 'Switches & Sockets',      slug: 'switches-sockets',   icon: '🔌', description: 'Modular switches, power sockets and cover plates' },
   { name: 'Wires & Cables',          slug: 'wires-cables',        icon: '🔋', description: 'Copper wires, PVC cables and multi-core cables' },
@@ -44,7 +41,7 @@ const buildProducts = (cats) => {
       numReviews: 38,
       featured: true,
       isActive: true,
-      images: [{ url: placeholder('Havells 6A Switch'), public_id: 'seed-1' }],
+      images: [{ url: '/shop-images/Havells Crabtree 6A One-Way Modular Switch.jpg', public_id: 'seed-1' }],
       specifications: new Map([['Type', 'Modular 1-Way'], ['Rating', '6A / 240V'], ['Color', 'White'], ['Mounting', 'Surface / Flush']]),
     },
     {
@@ -58,7 +55,7 @@ const buildProducts = (cats) => {
       numReviews: 62,
       featured: false,
       isActive: true,
-      images: [{ url: placeholder('Anchor 5A Switch'), public_id: 'seed-2' }],
+      images: [{ url: '/shop-images/Anchor Roma 5A One-Way Modular Switch.jpg', public_id: 'seed-2' }],
       specifications: new Map([['Type', 'Modular 1-Way'], ['Rating', '5A / 240V'], ['Color', 'White'], ['Standard', 'IS 3854']]),
     },
     {
@@ -72,7 +69,7 @@ const buildProducts = (cats) => {
       numReviews: 45,
       featured: false,
       isActive: true,
-      images: [{ url: placeholder('GM 5A Switch'), public_id: 'seed-3' }],
+      images: [{ url: '/shop-images/GM Modular 5A 1-Way Electrical Modular Switch White.jpg', public_id: 'seed-3' }],
       specifications: new Map([['Type', 'Modular 1-Way'], ['Rating', '5A / 240V'], ['Color', 'White'], ['Mounting', 'Flush']]),
     },
     {
@@ -86,7 +83,7 @@ const buildProducts = (cats) => {
       numReviews: 74,
       featured: true,
       isActive: true,
-      images: [{ url: placeholder('Legrand 16A Socket'), public_id: 'seed-4' }],
+      images: [{ url: '/shop-images/Legrand Mylinc 16A 3-Pin Power Socket Outlet.jpg', public_id: 'seed-4' }],
       specifications: new Map([['Type', '3-Pin Socket Outlet'], ['Rating', '16A / 240V'], ['Safety', 'Shuttered Contacts'], ['Standard', 'IS 1293']]),
     },
     {
@@ -100,7 +97,7 @@ const buildProducts = (cats) => {
       numReviews: 58,
       featured: false,
       isActive: true,
-      images: [{ url: placeholder('Anchor 16A Socket'), public_id: 'seed-5' }],
+      images: [{ url: '/shop-images/Anchor Roma 16A 3-Pin Power Socket Outlet White.jpg', public_id: 'seed-5' }],
       specifications: new Map([['Type', '3-Pin Socket Outlet'], ['Rating', '16A / 240V'], ['Safety', 'Shuttered'], ['Color', 'White']]),
     },
     {
@@ -114,7 +111,7 @@ const buildProducts = (cats) => {
       numReviews: 41,
       featured: false,
       isActive: true,
-      images: [{ url: placeholder('Havells 6A Socket'), public_id: 'seed-6' }],
+      images: [{ url: '/shop-images/Havells Crabtree 6A 3-Pin Socket Outlet Modular.jpg', public_id: 'seed-6' }],
       specifications: new Map([['Type', '3-Pin Socket Outlet'], ['Rating', '6A / 240V'], ['Safety', 'Shuttered'], ['Color', 'White']]),
     },
     {
@@ -128,7 +125,7 @@ const buildProducts = (cats) => {
       numReviews: 27,
       featured: false,
       isActive: true,
-      images: [{ url: placeholder('Anchor 6M Plate'), public_id: 'seed-7' }],
+      images: [{ url: '/shop-images/Anchor Roma 6-Module Cover Plate White.jpg', public_id: 'seed-7' }],
       specifications: new Map([['Modules', '6'], ['Material', 'Polycarbonate'], ['Color', 'White'], ['Standard', 'IS 3854']]),
     },
     {
@@ -142,7 +139,7 @@ const buildProducts = (cats) => {
       numReviews: 19,
       featured: false,
       isActive: true,
-      images: [{ url: placeholder('Legrand 8M Plate'), public_id: 'seed-8' }],
+      images: [{ url: '/shop-images/Legrand Mylinc 8-Module Cover Plate.jpg', public_id: 'seed-8' }],
       specifications: new Map([['Modules', '8'], ['Material', 'Polycarbonate'], ['Color', 'White'], ['Brand Series', 'Mylinc']]),
     },
 
@@ -160,7 +157,7 @@ const buildProducts = (cats) => {
       numReviews: 43,
       featured: false,
       isActive: true,
-      images: [{ url: placeholder('Polycab 1.0mm Wire'), public_id: 'seed-9' }],
+      images: [{ url: '/shop-images/Polycab Copper Wire 1.0 sq.mm Single Core FR (90m).jpg', public_id: 'seed-9' }],
       specifications: new Map([['Cross Section', '1.0 sq.mm'], ['Length', '90 metres'], ['Insulation', 'FR PVC'], ['Conductor', 'Multi-strand copper']]),
     },
     {
@@ -174,7 +171,7 @@ const buildProducts = (cats) => {
       numReviews: 54,
       featured: true,
       isActive: true,
-      images: [{ url: placeholder('Polycab 1.5mm Wire'), public_id: 'seed-10' }],
+      images: [{ url: '/shop-images/Polycab Copper Wire 1.5 sq.mm Single Core FR (90m).jpg', public_id: 'seed-10' }],
       specifications: new Map([['Cross Section', '1.5 sq.mm'], ['Length', '90 metres'], ['Insulation', 'FR PVC'], ['Conductor', 'Multi-strand copper']]),
     },
     {
@@ -188,7 +185,7 @@ const buildProducts = (cats) => {
       numReviews: 41,
       featured: false,
       isActive: true,
-      images: [{ url: placeholder('Polycab 2.5mm Wire'), public_id: 'seed-11' }],
+      images: [{ url: '/shop-images/Polycab Copper Wire 2.5 sq.mm Single Core FR (90m).jpg', public_id: 'seed-11' }],
       specifications: new Map([['Cross Section', '2.5 sq.mm'], ['Length', '90 metres'], ['Insulation', 'FR PVC'], ['Conductor', 'Multi-strand copper']]),
     },
     {
@@ -202,7 +199,7 @@ const buildProducts = (cats) => {
       numReviews: 29,
       featured: false,
       isActive: true,
-      images: [{ url: placeholder('Finolex 4.0mm Wire'), public_id: 'seed-12' }],
+      images: [{ url: '/shop-images/Finolex Copper Wire 4.0 sq.mm Single Core FR (90m).jpg', public_id: 'seed-12' }],
       specifications: new Map([['Cross Section', '4.0 sq.mm'], ['Length', '90 metres'], ['Insulation', 'FR PVC'], ['Voltage Grade', '1100V']]),
     },
     {
@@ -216,7 +213,7 @@ const buildProducts = (cats) => {
       numReviews: 18,
       featured: false,
       isActive: true,
-      images: [{ url: placeholder('Havells 6.0mm Wire'), public_id: 'seed-13' }],
+      images: [{ url: '/shop-images/Havells Copper Wire 6.0 sq.mm Single Core FRLS (90m).jpg', public_id: 'seed-13' }],
       specifications: new Map([['Cross Section', '6.0 sq.mm'], ['Length', '90 metres'], ['Insulation', 'FRLS PVC'], ['Voltage Grade', '1100V']]),
     },
     {
@@ -230,7 +227,7 @@ const buildProducts = (cats) => {
       numReviews: 29,
       featured: false,
       isActive: true,
-      images: [{ url: placeholder('Finolex 3-Core Cable'), public_id: 'seed-14' }],
+      images: [{ url: '/shop-images/Finolex 4 sq.mm 3-Core Flat Cable (100m).jpg', public_id: 'seed-14' }],
       specifications: new Map([['Cross Section', '4 sq.mm'], ['Cores', '3'], ['Length', '100 metres'], ['Voltage Rating', '1100V']]),
     },
     {
@@ -244,7 +241,7 @@ const buildProducts = (cats) => {
       numReviews: 22,
       featured: false,
       isActive: true,
-      images: [{ url: placeholder('KEI 3-Core Cable'), public_id: 'seed-15' }],
+      images: [{ url: '/shop-images/KEI 2.5 sq.mm 3-Core Flexible Cable (100m).jpg', public_id: 'seed-15' }],
       specifications: new Map([['Cross Section', '2.5 sq.mm'], ['Cores', '3'], ['Length', '100 metres'], ['Type', 'Flexible']]),
     },
 
@@ -262,7 +259,7 @@ const buildProducts = (cats) => {
       numReviews: 88,
       featured: true,
       isActive: true,
-      images: [{ url: placeholder('Crompton Aura Fan'), public_id: 'seed-16' }],
+      images: [{ url: '/shop-images/Crompton Aura Prime 1200mm High-Speed Ceiling Fan.jpg', public_id: 'seed-16' }],
       specifications: new Map([['Sweep', '1200mm'], ['Power', '75W'], ['Speed', '350 RPM'], ['Air Delivery', '220 CMM']]),
     },
     {
@@ -276,7 +273,7 @@ const buildProducts = (cats) => {
       numReviews: 73,
       featured: true,
       isActive: true,
-      images: [{ url: placeholder('Havells BLDC Fan'), public_id: 'seed-17' }],
+      images: [{ url: '/shop-images/Havells Stealth 1200mm BLDC Ceiling Fan with Remote.jpg', public_id: 'seed-17' }],
       specifications: new Map([['Sweep', '1200mm'], ['Power', '28W (BLDC)'], ['Speed', '350 RPM'], ['Remote', 'Included']]),
     },
     {
@@ -290,7 +287,7 @@ const buildProducts = (cats) => {
       numReviews: 52,
       featured: false,
       isActive: true,
-      images: [{ url: placeholder('Orient BLDC Fan'), public_id: 'seed-18' }],
+      images: [{ url: '/shop-images/Orient Electric Apex-FX 1200mm BLDC Ceiling Fan.jpg', public_id: 'seed-18' }],
       specifications: new Map([['Sweep', '1200mm'], ['Power', '25W (BLDC)'], ['Speed', '360 RPM'], ['Remote', 'Included']]),
     },
     {
@@ -304,7 +301,7 @@ const buildProducts = (cats) => {
       numReviews: 33,
       featured: false,
       isActive: true,
-      images: [{ url: placeholder('Bajaj Exhaust Fan'), public_id: 'seed-19' }],
+      images: [{ url: '/shop-images/Bajaj Midea 250mm Exhaust Fan for Kitchen & Bathroom.jpg', public_id: 'seed-19' }],
       specifications: new Map([['Blade Size', '250mm'], ['Power', '30W'], ['Voltage', '230V / 50Hz'], ['Speed', '1350 RPM']]),
     },
     {
@@ -318,7 +315,7 @@ const buildProducts = (cats) => {
       numReviews: 27,
       featured: false,
       isActive: true,
-      images: [{ url: placeholder('Havells Exhaust Fan'), public_id: 'seed-20' }],
+      images: [{ url: '/shop-images/Havells Ventilair 300mm Exhaust Fan.jpg', public_id: 'seed-20' }],
       specifications: new Map([['Blade Size', '300mm'], ['Power', '35W'], ['Voltage', '230V / 50Hz'], ['Speed', '1280 RPM']]),
     },
     {
@@ -332,7 +329,7 @@ const buildProducts = (cats) => {
       numReviews: 41,
       featured: false,
       isActive: true,
-      images: [{ url: placeholder('Crompton Pedestal Fan'), public_id: 'seed-21' }],
+      images: [{ url: '/shop-images/Crompton Pedestal Fan 400mm High-Speed.jpg', public_id: 'seed-21' }],
       specifications: new Map([['Sweep', '400mm'], ['Power', '105W'], ['Speeds', '3'], ['Oscillation', 'Yes']]),
     },
 
@@ -350,7 +347,7 @@ const buildProducts = (cats) => {
       numReviews: 112,
       featured: true,
       isActive: true,
-      images: [{ url: placeholder('Philips 9W LED Bulb'), public_id: 'seed-22' }],
+      images: [{ url: '/shop-images/Philips Stellar Bright 9W LED Bulb B22 (Pack of 4).jpg', public_id: 'seed-22' }],
       specifications: new Map([['Wattage', '9W'], ['Lumens', '950 lm'], ['Color Temp', '6500K'], ['Life', '15,000 hours']]),
     },
     {
@@ -364,7 +361,7 @@ const buildProducts = (cats) => {
       numReviews: 87,
       featured: false,
       isActive: true,
-      images: [{ url: placeholder('Syska 7W LED Bulb'), public_id: 'seed-23' }],
+      images: [{ url: '/shop-images/Syska Base B22 7W LED Bulb (Pack of 6).jpg', public_id: 'seed-23' }],
       specifications: new Map([['Wattage', '7W'], ['Lumens', '700 lm'], ['Base', 'B22'], ['Life', '25,000 hours']]),
     },
     {
@@ -378,7 +375,7 @@ const buildProducts = (cats) => {
       numReviews: 44,
       featured: false,
       isActive: true,
-      images: [{ url: placeholder('Syska LED Tube'), public_id: 'seed-24' }],
+      images: [{ url: '/shop-images/Syska T5 18W LED Tube Light 4ft (Pack of 2).jpg', public_id: 'seed-24' }],
       specifications: new Map([['Wattage', '18W'], ['Length', '1200mm (4ft)'], ['Lumens', '1800 lm'], ['IP Rating', 'IP20']]),
     },
     {
@@ -392,7 +389,7 @@ const buildProducts = (cats) => {
       numReviews: 55,
       featured: true,
       isActive: true,
-      images: [{ url: placeholder('Wipro LED Panel'), public_id: 'seed-25' }],
+      images: [{ url: '/shop-images/Wipro Garnet 20W LED Panel Light Round Surface.jpg', public_id: 'seed-25' }],
       specifications: new Map([['Wattage', '20W'], ['Lumens', '1800 lm'], ['Color Temp', '6500K'], ['Type', 'Round Surface']]),
     },
     {
@@ -406,7 +403,7 @@ const buildProducts = (cats) => {
       numReviews: 38,
       featured: false,
       isActive: true,
-      images: [{ url: placeholder('Orient LED Downlight'), public_id: 'seed-26' }],
+      images: [{ url: '/shop-images/Orient Electric 12W LED Downlight Recessed.jpg', public_id: 'seed-26' }],
       specifications: new Map([['Wattage', '12W'], ['Type', 'Recessed Downlight'], ['Color Temp', '4000K Neutral White'], ['Cutout', '125mm']]),
     },
     {
@@ -420,7 +417,7 @@ const buildProducts = (cats) => {
       numReviews: 49,
       featured: false,
       isActive: true,
-      images: [{ url: placeholder('Havells LED Batten'), public_id: 'seed-27' }],
+      images: [{ url: '/shop-images/Havells 36W LED Batten Light 4ft Surface Mount.jpg', public_id: 'seed-27' }],
       specifications: new Map([['Wattage', '36W'], ['Lumens', '3600 lm'], ['Color Temp', '6500K'], ['Length', '1200mm']]),
     },
 
@@ -438,7 +435,7 @@ const buildProducts = (cats) => {
       numReviews: 34,
       featured: false,
       isActive: true,
-      images: [{ url: placeholder('Legrand 6A MCB'), public_id: 'seed-28' }],
+      images: [{ url: '/shop-images/Legrand 6A Single-Pole MCB C-Curve Circuit Breaker.jpg', public_id: 'seed-28' }],
       specifications: new Map([['Rating', '6A'], ['Poles', '1 (Single)'], ['Curve', 'C-Curve'], ['Breaking Capacity', '6kA']]),
     },
     {
@@ -452,7 +449,7 @@ const buildProducts = (cats) => {
       numReviews: 29,
       featured: false,
       isActive: true,
-      images: [{ url: placeholder('Legrand 10A MCB'), public_id: 'seed-29' }],
+      images: [{ url: '/shop-images/Legrand 10A Single-Pole MCB C-Curve Circuit Breaker.jpg', public_id: 'seed-29' }],
       specifications: new Map([['Rating', '10A'], ['Poles', '1 (Single)'], ['Curve', 'C-Curve'], ['Breaking Capacity', '6kA']]),
     },
     {
@@ -466,7 +463,7 @@ const buildProducts = (cats) => {
       numReviews: 58,
       featured: true,
       isActive: true,
-      images: [{ url: placeholder('Legrand 16A MCB'), public_id: 'seed-30' }],
+      images: [{ url: '/shop-images/Legrand 16A Single-Pole MCB C-Curve Circuit Breaker.jpg', public_id: 'seed-30' }],
       specifications: new Map([['Rating', '16A'], ['Poles', '1 (Single)'], ['Curve', 'C-Curve'], ['Breaking Capacity', '6kA']]),
     },
     {
@@ -480,7 +477,7 @@ const buildProducts = (cats) => {
       numReviews: 22,
       featured: false,
       isActive: true,
-      images: [{ url: placeholder('Legrand 20A MCB'), public_id: 'seed-31' }],
+      images: [{ url: '/shop-images/Legrand 20A Single-Pole MCB C-Curve Circuit Breaker.jpg', public_id: 'seed-31' }],
       specifications: new Map([['Rating', '20A'], ['Poles', '1 (Single)'], ['Curve', 'C-Curve'], ['Breaking Capacity', '6kA']]),
     },
     {
@@ -494,7 +491,7 @@ const buildProducts = (cats) => {
       numReviews: 17,
       featured: false,
       isActive: true,
-      images: [{ url: placeholder('Legrand 25A MCB'), public_id: 'seed-32' }],
+      images: [{ url: '/shop-images/Legrand 25A Single-Pole MCB C-Curve Circuit Breaker.jpg', public_id: 'seed-32' }],
       specifications: new Map([['Rating', '25A'], ['Poles', '1 (Single)'], ['Curve', 'C-Curve'], ['Breaking Capacity', '6kA']]),
     },
     {
@@ -508,7 +505,7 @@ const buildProducts = (cats) => {
       numReviews: 14,
       featured: false,
       isActive: true,
-      images: [{ url: placeholder('Legrand 32A MCB'), public_id: 'seed-33' }],
+      images: [{ url: '/shop-images/Legrand 32A Single-Pole MCB C-Curve Circuit Breaker.jpg', public_id: 'seed-33' }],
       specifications: new Map([['Rating', '32A'], ['Poles', '1 (Single)'], ['Curve', 'C-Curve'], ['Breaking Capacity', '6kA']]),
     },
     {
@@ -522,7 +519,7 @@ const buildProducts = (cats) => {
       numReviews: 21,
       featured: false,
       isActive: true,
-      images: [{ url: placeholder('Havells 40A DP MCB'), public_id: 'seed-34' }],
+      images: [{ url: '/shop-images/Havells 40A DP MCB C-Curve Double Pole Circuit Breaker.jpg', public_id: 'seed-34' }],
       specifications: new Map([['Rating', '40A'], ['Poles', '2 (Double)'], ['Curve', 'C-Curve'], ['Breaking Capacity', '10kA']]),
     },
     {
@@ -536,7 +533,7 @@ const buildProducts = (cats) => {
       numReviews: 23,
       featured: true,
       isActive: true,
-      images: [{ url: placeholder('Schneider DB Box 8W'), public_id: 'seed-35' }],
+      images: [{ url: '/shop-images/Schneider Acti9 8-Way MCB Distribution Board DB Box Single Phase.jpg', public_id: 'seed-35' }],
       specifications: new Map([['Ways', '8'], ['Phase', 'Single Phase'], ['IP Rating', 'IP30'], ['Standard', 'IEC 61439-3']]),
     },
     {
@@ -550,7 +547,7 @@ const buildProducts = (cats) => {
       numReviews: 16,
       featured: false,
       isActive: true,
-      images: [{ url: placeholder('Legrand DB Box 12W'), public_id: 'seed-36' }],
+      images: [{ url: '/shop-images/Legrand 12-Way MCB Distribution Board DB Box Single Phase.jpg', public_id: 'seed-36' }],
       specifications: new Map([['Ways', '12'], ['Phase', 'Single Phase'], ['IP Rating', 'IP30'], ['Standard', 'IEC 61439-3']]),
     },
     {
@@ -564,7 +561,7 @@ const buildProducts = (cats) => {
       numReviews: 31,
       featured: true,
       isActive: true,
-      images: [{ url: placeholder('Havells RCCB 32A'), public_id: 'seed-37' }],
+      images: [{ url: '/shop-images/Havells 32A DP RCCB 30mA Residual Current Circuit Breaker.jpg', public_id: 'seed-37' }],
       specifications: new Map([['Rating', '32A'], ['Poles', 'Double Pole'], ['Sensitivity', '30mA'], ['Standard', 'IS 12640']]),
     },
     {
@@ -578,7 +575,7 @@ const buildProducts = (cats) => {
       numReviews: 19,
       featured: false,
       isActive: true,
-      images: [{ url: placeholder('Legrand RCCB 25A'), public_id: 'seed-38' }],
+      images: [{ url: '/shop-images/Legrand 25A DP RCCB 30mA Residual Current Circuit Breaker.jpg', public_id: 'seed-38' }],
       specifications: new Map([['Rating', '25A'], ['Poles', 'Double Pole'], ['Sensitivity', '30mA'], ['Standard', 'IEC 61008-1']]),
     },
 
@@ -596,7 +593,7 @@ const buildProducts = (cats) => {
       numReviews: 47,
       featured: true,
       isActive: true,
-      images: [{ url: placeholder('Astral PVC Conduit 20mm'), public_id: 'seed-39' }],
+      images: [{ url: '/shop-images/Astral PVC Conduit Pipe 20mm ISI (3m) — Pack of 10.jpg', public_id: 'seed-39' }],
       specifications: new Map([['Diameter', '20mm'], ['Length', '3m per pipe (30m pack)'], ['Material', 'Rigid PVC'], ['Standard', 'IS 14930']]),
     },
     {
@@ -610,7 +607,7 @@ const buildProducts = (cats) => {
       numReviews: 62,
       featured: false,
       isActive: true,
-      images: [{ url: placeholder('Supreme PVC Conduit 20mm'), public_id: 'seed-40' }],
+      images: [{ url: '/shop-images/Supreme PVC Electrical Conduit Pipe 20mm (3m).jpg', public_id: 'seed-40' }],
       specifications: new Map([['Diameter', '20mm'], ['Length', '3 metres'], ['Material', 'Rigid PVC'], ['Standard', 'IS 14930']]),
     },
     {
@@ -624,7 +621,7 @@ const buildProducts = (cats) => {
       numReviews: 33,
       featured: false,
       isActive: true,
-      images: [{ url: placeholder('Finolex PVC Conduit 25mm'), public_id: 'seed-41' }],
+      images: [{ url: '/shop-images/Finolex PVC Conduit Pipe 25mm (3m).jpg', public_id: 'seed-41' }],
       specifications: new Map([['Diameter', '25mm'], ['Length', '3 metres'], ['Material', 'Rigid PVC'], ['Standard', 'IS 14930']]),
     },
     {
@@ -638,7 +635,7 @@ const buildProducts = (cats) => {
       numReviews: 78,
       featured: true,
       isActive: true,
-      images: [{ url: placeholder('Anchor Junction Box 4x4'), public_id: 'seed-42' }],
+      images: [{ url: '/shop-images/Anchor PVC Electrical Junction Box 4x4 Inch Surface Mount.jpg', public_id: 'seed-42' }],
       specifications: new Map([['Size', '4x4 inch'], ['Material', 'PVC / Polycarbonate'], ['Mount', 'Surface / Flush'], ['IP Rating', 'IP40']]),
     },
     {
@@ -652,7 +649,7 @@ const buildProducts = (cats) => {
       numReviews: 55,
       featured: false,
       isActive: true,
-      images: [{ url: placeholder('Legrand Junction Box 3x3'), public_id: 'seed-43' }],
+      images: [{ url: '/shop-images/Legrand Electrical Junction Box 3x3 Inch PVC.jpg', public_id: 'seed-43' }],
       specifications: new Map([['Size', '3x3 inch'], ['Material', 'PVC'], ['Mount', 'Surface / Flush'], ['Color', 'White']]),
     },
     {
@@ -666,7 +663,7 @@ const buildProducts = (cats) => {
       numReviews: 41,
       featured: false,
       isActive: true,
-      images: [{ url: placeholder('GM Junction Box 2x2'), public_id: 'seed-44' }],
+      images: [{ url: '/shop-images/GM Modular PVC Electrical Junction Box 2x2 Inch.jpg', public_id: 'seed-44' }],
       specifications: new Map([['Size', '2x2 inch'], ['Material', 'PVC'], ['Color', 'White'], ['Mount', 'Surface']]),
     },
     {
@@ -680,7 +677,7 @@ const buildProducts = (cats) => {
       numReviews: 18,
       featured: false,
       isActive: true,
-      images: [{ url: placeholder('Anchor Casing Capping 1"'), public_id: 'seed-45' }],
+      images: [{ url: '/shop-images/Anchor Casing-Capping PVC 1 inch x 100ft White.jpg', public_id: 'seed-45' }],
       specifications: new Map([['Width', '1 inch'], ['Length', '100 ft'], ['Material', 'PVC'], ['Color', 'White']]),
     },
     {
@@ -694,7 +691,7 @@ const buildProducts = (cats) => {
       numReviews: 22,
       featured: false,
       isActive: true,
-      images: [{ url: placeholder('Astral Conduit Elbow 20mm'), public_id: 'seed-46' }],
+      images: [{ url: '/shop-images/Astral PVC Conduit Elbow 20mm 90-Degree (Pack of 10).jpg', public_id: 'seed-46' }],
       specifications: new Map([['Diameter', '20mm'], ['Angle', '90 degrees'], ['Material', 'PVC'], ['Pack', '10 pieces']]),
     },
     {
@@ -708,7 +705,7 @@ const buildProducts = (cats) => {
       numReviews: 29,
       featured: false,
       isActive: true,
-      images: [{ url: placeholder('Steel Junction Box 4x4'), public_id: 'seed-47' }],
+      images: [{ url: '/shop-images/Galvanized Steel Electrical Junction Box 4x4 Inch.jpg', public_id: 'seed-47' }],
       specifications: new Map([['Size', '4x4 inch'], ['Material', 'Galvanized Steel'], ['IP Rating', 'IP55'], ['Use', 'Industrial / Outdoor']]),
     },
 
@@ -726,7 +723,7 @@ const buildProducts = (cats) => {
       numReviews: 76,
       featured: true,
       isActive: true,
-      images: [{ url: placeholder('Stanley Tester Screwdriver'), public_id: 'seed-48' }],
+      images: [{ url: '/shop-images/Stanley FatMax Electrical Tester Screwdriver Set 6-Piece.jpg', public_id: 'seed-48' }],
       specifications: new Map([['Pieces', '6'], ['Insulation', 'VDE 1000V'], ['Handle', 'Bi-material CushionGrip'], ['Includes', 'Voltage Tester']]),
     },
     {
@@ -740,7 +737,7 @@ const buildProducts = (cats) => {
       numReviews: 63,
       featured: true,
       isActive: true,
-      images: [{ url: placeholder('Fluke 101 Multimeter'), public_id: 'seed-49' }],
+      images: [{ url: '/shop-images/Fluke 101 Basic Digital Multimeter.jpg', public_id: 'seed-49' }],
       specifications: new Map([['Type', 'Digital Multimeter'], ['Voltage Range', 'AC/DC 600V'], ['Safety', 'CAT III 600V'], ['Display', '4000 count']]),
     },
     {
@@ -754,7 +751,7 @@ const buildProducts = (cats) => {
       numReviews: 44,
       featured: false,
       isActive: true,
-      images: [{ url: placeholder('Mastech Multimeter'), public_id: 'seed-50' }],
+      images: [{ url: '/shop-images/Mastech MS8268 Auto-Range Digital Multimeter.jpg', public_id: 'seed-50' }],
       specifications: new Map([['Type', 'Auto-Range Multimeter'], ['Voltage Range', 'AC/DC 750V'], ['Safety', 'CAT III 600V'], ['Features', 'Capacitance, Frequency']]),
     },
     {
@@ -768,7 +765,7 @@ const buildProducts = (cats) => {
       numReviews: 92,
       featured: true,
       isActive: true,
-      images: [{ url: placeholder('3M Electrical Tape'), public_id: 'seed-51' }],
+      images: [{ url: '/shop-images/3M Scotch 33+ Electrical Insulation Tape 19mm x 20m (Pack of 5).jpg', public_id: 'seed-51' }],
       specifications: new Map([['Width', '19mm'], ['Length', '20m per roll'], ['Rating', '600V / 105°C'], ['Pack', '5 rolls']]),
     },
     {
@@ -782,7 +779,7 @@ const buildProducts = (cats) => {
       numReviews: 59,
       featured: true,
       isActive: true,
-      images: [{ url: placeholder('Bosch GSR Cordless Drill'), public_id: 'seed-52' }],
+      images: [{ url: '/shop-images/Bosch GSR 185-LI Cordless Drill Driver.jpg', public_id: 'seed-52' }],
       specifications: new Map([['Voltage', '18V Lithium-ion'], ['Speed', '2-speed gearbox'], ['Torque Settings', '25+1'], ['Battery', '2Ah']]),
     },
     {
@@ -796,7 +793,7 @@ const buildProducts = (cats) => {
       numReviews: 51,
       featured: false,
       isActive: true,
-      images: [{ url: placeholder('Taparia Wire Stripper'), public_id: 'seed-53' }],
+      images: [{ url: '/shop-images/Taparia Wire Stripper & Cutter Pliers.jpg', public_id: 'seed-53' }],
       specifications: new Map([['Type', 'Wire Stripper & Cutter'], ['Range', '1.0–4.0mm'], ['Insulation', 'VDE 1000V'], ['Material', 'Chrome-Vanadium']]),
     },
     {
@@ -810,7 +807,7 @@ const buildProducts = (cats) => {
       numReviews: 67,
       featured: false,
       isActive: true,
-      images: [{ url: placeholder('Voltage Tester Pen'), public_id: 'seed-54' }],
+      images: [{ url: '/shop-images/Camsco Non-Contact Voltage Tester Pen.jpg', public_id: 'seed-54' }],
       specifications: new Map([['Type', 'Non-Contact Voltage Tester'], ['Range', '90–1000V AC'], ['Indication', 'LED + Buzzer'], ['Form Factor', 'Pen']]),
     },
     {
@@ -824,7 +821,7 @@ const buildProducts = (cats) => {
       numReviews: 38,
       featured: false,
       isActive: true,
-      images: [{ url: placeholder('Cable Ties Pack'), public_id: 'seed-55' }],
+      images: [{ url: '/shop-images/Finolex Cable Tie 100mm x 2.5mm (Pack of 100).jpg', public_id: 'seed-55' }],
       specifications: new Map([['Size', '100mm x 2.5mm'], ['Material', 'Nylon 66'], ['Tensile Strength', '8kg'], ['Pack', '100 pieces']]),
     },
 
@@ -842,7 +839,7 @@ const buildProducts = (cats) => {
       numReviews: 52,
       featured: true,
       isActive: true,
-      images: [{ url: placeholder('Amaron 150Ah Tubular'), public_id: 'seed-56' }],
+      images: [{ url: '/shop-images/Amaron 150Ah Tall Tubular Battery.jpg', public_id: 'seed-56' }],
       specifications: new Map([['Type', 'Tall Tubular'], ['Capacity', '150Ah / 12V'], ['Warranty', '60 Months'], ['Technology', 'Tubular Plate']]),
     },
     {
@@ -856,7 +853,7 @@ const buildProducts = (cats) => {
       numReviews: 67,
       featured: true,
       isActive: true,
-      images: [{ url: placeholder('Exide 150Ah Tubular'), public_id: 'seed-57' }],
+      images: [{ url: '/shop-images/Exide Inva Tubular 150Ah Battery.jpg', public_id: 'seed-57' }],
       specifications: new Map([['Type', 'Tall Tubular'], ['Capacity', '150Ah / 12V'], ['Warranty', '60 Months'], ['Standard', 'IS 15549']]),
     },
     {
@@ -870,7 +867,7 @@ const buildProducts = (cats) => {
       numReviews: 89,
       featured: true,
       isActive: true,
-      images: [{ url: placeholder('Luminous 150Ah Tubular'), public_id: 'seed-58' }],
+      images: [{ url: '/shop-images/Luminous Red Charge RC 18000 150Ah Battery.jpg', public_id: 'seed-58' }],
       specifications: new Map([['Type', 'Tall Tubular'], ['Capacity', '150Ah / 12V'], ['Warranty', '60 Months'], ['Series', 'Red Charge']]),
     },
     {
@@ -884,7 +881,7 @@ const buildProducts = (cats) => {
       numReviews: 44,
       featured: false,
       isActive: true,
-      images: [{ url: placeholder('Exide 100Ah Tubular'), public_id: 'seed-59' }],
+      images: [{ url: '/shop-images/Exide Inva Tubular 100Ah Battery.jpg', public_id: 'seed-59' }],
       specifications: new Map([['Type', 'Tall Tubular'], ['Capacity', '100Ah / 12V'], ['Warranty', '48 Months'], ['Standard', 'IS 15549']]),
     },
     {
@@ -898,7 +895,7 @@ const buildProducts = (cats) => {
       numReviews: 73,
       featured: true,
       isActive: true,
-      images: [{ url: placeholder('APC 600VA UPS'), public_id: 'seed-60' }],
+      images: [{ url: '/shop-images/APC Back-UPS BX600C 600VA UPS.jpg', public_id: 'seed-60' }],
       specifications: new Map([['Type', 'Offline UPS'], ['Capacity', '600VA / 360W'], ['Input Voltage', '230V'], ['Outlets', '6']]),
     },
     {
@@ -912,7 +909,7 @@ const buildProducts = (cats) => {
       numReviews: 95,
       featured: true,
       isActive: true,
-      images: [{ url: placeholder('Luminous 900VA UPS'), public_id: 'seed-61' }],
+      images: [{ url: '/shop-images/Luminous Eco Volt Neo 1050 900VA UPS.jpg', public_id: 'seed-61' }],
       specifications: new Map([['Type', 'Home UPS / Inverter'], ['Capacity', '900VA / 756W'], ['Output', 'Pure Sine Wave'], ['Battery Support', 'Up to 180Ah']]),
     },
     {
@@ -926,7 +923,7 @@ const buildProducts = (cats) => {
       numReviews: 61,
       featured: false,
       isActive: true,
-      images: [{ url: placeholder('Microtek 900VA UPS'), public_id: 'seed-62' }],
+      images: [{ url: '/shop-images/Microtek UPS EB 900VA Home Inverter.jpg', public_id: 'seed-62' }],
       specifications: new Map([['Type', 'Home Inverter'], ['Capacity', '900VA'], ['Output', 'Modified Sine Wave'], ['Battery', '1 × 12V']]),
     },
     {
@@ -940,7 +937,7 @@ const buildProducts = (cats) => {
       numReviews: 36,
       featured: false,
       isActive: true,
-      images: [{ url: placeholder('Amaron 12V 7Ah SMF'), public_id: 'seed-63' }],
+      images: [{ url: '/shop-images/Amaron 12V 7Ah SMF VRLA Battery.jpg', public_id: 'seed-63' }],
       specifications: new Map([['Type', 'SMF / VRLA'], ['Voltage', '12V'], ['Capacity', '7Ah'], ['Technology', 'AGM']]),
     },
     {
@@ -954,7 +951,7 @@ const buildProducts = (cats) => {
       numReviews: 29,
       featured: false,
       isActive: true,
-      images: [{ url: placeholder('Exide 12V 42Ah SMF'), public_id: 'seed-64' }],
+      images: [{ url: '/shop-images/Exide 12V 42Ah SMF Battery.jpg', public_id: 'seed-64' }],
       specifications: new Map([['Type', 'SMF / VRLA'], ['Voltage', '12V'], ['Capacity', '42Ah'], ['Standard', 'IS 16270']]),
     },
   ];
