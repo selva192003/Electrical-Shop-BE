@@ -21,19 +21,31 @@ const app = express();
 const httpServer = http.createServer(app);
 
 // ─── Socket.io Setup ────────────────────────────────────────────────────────
+// Build allowed origins from env — set CLIENT_URL to your production frontend URL
+// Optionally add comma-separated extra origins via EXTRA_CORS_ORIGINS env var
 const allowedOrigins = [
   process.env.CLIENT_URL,
   'http://localhost:5173',
   'http://localhost:3000',
+  ...(process.env.EXTRA_CORS_ORIGINS ? process.env.EXTRA_CORS_ORIGINS.split(',').map(o => o.trim()) : []),
 ].filter(Boolean);
+
+// Build a regex from CLIENT_URL to also allow Vercel preview deployments
+// e.g. CLIENT_URL=https://my-app.vercel.app  →  allows https://my-app-*.vercel.app
+const clientUrlPattern = (() => {
+  try {
+    const { hostname } = new URL(process.env.CLIENT_URL || '');
+    const base = hostname.replace(/\.vercel\.app$/, '');
+    return base ? new RegExp(`^https:\\/\\/${base.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}[^.]*\\.vercel\\.app$`) : null;
+  } catch { return null; }
+})();
 
 const corsOriginFn = (origin, callback) => {
   // Allow requests with no origin (mobile apps, curl, Postman)
   if (!origin) return callback(null, true);
   if (
     allowedOrigins.includes(origin) ||
-    /^https:\/\/electrical-shop-fe.*\.vercel\.app$/.test(origin) ||
-    /^https:\/\/electrical-shop-mo.*\.vercel\.app$/.test(origin)
+    (clientUrlPattern && clientUrlPattern.test(origin))
   ) {
     return callback(null, true);
   }
