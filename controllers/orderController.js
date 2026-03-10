@@ -187,6 +187,12 @@ exports.updateOrderStatus = async (req, res, next) => {
     if (status === 'Delivered') {
       order.isDelivered = true;
       order.deliveredAt = new Date();
+      // COD is paid on delivery — mark as paid when delivered
+      if (order.paymentInfo?.method === 'COD' && !order.isPaid) {
+        order.isPaid = true;
+        order.paidAt = new Date();
+        order.paymentInfo.status = 'Completed';
+      }
       // Award loyalty points (1 pt per ₹10)
       awardPointsForOrder(order.user, order._id, order.totalPrice).catch(() => {});
     }
