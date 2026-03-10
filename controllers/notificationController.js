@@ -86,9 +86,22 @@ exports.clearNotifications = async (req, res, next) => {
 };
 
 // ---- Internal helper (used by other controllers) ----
-exports.createNotification = async ({ userId, title, message, type = 'system', link = '' }) => {
+// Creates a notification in DB and pushes it to the user's socket room in real-time.
+exports.createNotification = async ({ userId, title, message, type = 'system', link = '' }, io) => {
   try {
-    await Notification.create({ user: userId, title, message, type, link });
+    const notification = await Notification.create({ user: userId, title, message, type, link });
+    if (io) {
+      io.to(`user_${userId}`).emit('newNotification', {
+        _id: notification._id,
+        title,
+        message,
+        type,
+        link,
+        isRead: false,
+        createdAt: notification.createdAt,
+      });
+    }
+    return notification;
   } catch (err) {
     console.error('Failed to create notification:', err.message);
   }

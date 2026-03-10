@@ -24,7 +24,7 @@ exports.createTicket = async (req, res, next) => {
       message: `Your support ticket "#${ticket._id}" has been submitted. We will respond shortly.`,
       type: 'support',
       link: '/support/tickets',
-    });
+    }, req.app.get('io'));
 
     return res.status(201).json(ticket);
   } catch (error) {
@@ -109,7 +109,7 @@ exports.replyToTicket = async (req, res, next) => {
         message: `The support team replied to your ticket: "${ticket.subject}"`,
         type: 'support',
         link: `/support/tickets/${ticket._id}`,
-      });
+      }, req.app.get('io'));
     }
 
     return res.json(ticket);
@@ -144,7 +144,7 @@ exports.updateTicketStatus = async (req, res, next) => {
         message: `Your ticket "${ticket.subject}" has been resolved. If you need further help, you can raise a new ticket.`,
         type: 'support',
         link: `/support/tickets/${ticket._id}`,
-      });
+      }, req.app.get('io'));
     }
 
     return res.json(ticket);

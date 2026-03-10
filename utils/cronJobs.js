@@ -7,10 +7,16 @@ const Product = require('../models/Product');
 const Coupon = require('../models/Coupon');
 const Notification = require('../models/Notification');
 
+// Helper to create notification in DB and emit socket
+const emitNotification = async (io, userId, data) => {
+  const n = await Notification.create({ user: userId, ...data }).catch(() => null);
+  if (n && io) io.to(`user_${userId}`).emit('newNotification', { ...n.toObject(), isRead: false });
+};
+
 // ─────────────────────────────────────────────
 // 1. Abandoned Cart Recovery — runs every day at 10:00 AM
 // ─────────────────────────────────────────────
-const runAbandonedCartRecovery = async () => {
+const runAbandonedCartRecovery = async (io) => {
   try {
     const cutoff = new Date(Date.now() - 24 * 60 * 60 * 1000); // 24 hours ago
     const twoDaysAgo = new Date(Date.now() - 48 * 60 * 60 * 1000);
@@ -94,13 +100,12 @@ const runAbandonedCartRecovery = async () => {
       }).catch(() => {});
 
       // In-app notification
-      await Notification.create({
-        user: cart.user._id,
+      await emitNotification(io, cart.user._id, {
         title: 'Cart Reminder',
         message: `You have items in your cart! Use code ${code} for 10% off. Valid for 3 days.`,
         type: 'promo',
         link: '/cart',
-      }).catch(() => {});
+      });
 
       recovered++;
     }
@@ -132,7 +137,7 @@ const runFlashSaleExpiry = async () => {
 // ─────────────────────────────────────────────
 // 4. Low stock admin alerts — runs every day at 8:00 AM
 // ─────────────────────────────────────────────
-const runLowStockAlerts = async () => {
+const runLowStockAlerts = async (io) => {
   try {
     const lowStockProducts = await Product.find({
       isActive: true,
@@ -171,13 +176,12 @@ const runLowStockAlerts = async () => {
       }).catch(() => {});
 
       // In-app notification for admin
-      await Notification.create({
-        user: admin._id,
+      await emitNotification(io, admin._id, {
         title: 'Low Stock Alert',
         message: `${lowStockProducts.length} product(s) are running low on stock. Check inventory now.`,
         type: 'inventory',
         link: '/admin/products',
-      }).catch(() => {});
+      });
     }
 
     console.log(`[Cron] Low stock alerts sent for ${lowStockProducts.length} product(s)`);
@@ -189,15 +193,15 @@ const runLowStockAlerts = async () => {
 // ─────────────────────────────────────────────
 // Register all cron jobs
 // ─────────────────────────────────────────────
-const initCronJobs = () => {
+const initCronJobs = (io) => {
   // Abandoned cart recovery: every day at 10:00 AM
-  cron.schedule('0 10 * * *', runAbandonedCartRecovery, { timezone: 'Asia/Kolkata' });
+  cron.schedule('0 10 * * *', () => runAbandonedCartRecovery(io), { timezone: 'Asia/Kolkata' });
 
   // Flash sale expiry: every hour
   cron.schedule('0 * * * *', runFlashSaleExpiry);
 
   // Low stock alerts: every day at 8:00 AM
-  cron.schedule('0 8 * * *', runLowStockAlerts, { timezone: 'Asia/Kolkata' });
+  cron.schedule('0 8 * * *', () => runLowStockAlerts(io), { timezone: 'Asia/Kolkata' });
 
   console.log('[Cron] All scheduled jobs initialized');
 };

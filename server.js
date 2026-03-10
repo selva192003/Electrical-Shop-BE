@@ -154,7 +154,7 @@ app.use(notFound);
 app.use(errorHandler);
 
 // ─── Initialize cron jobs ────────────────────────────────────────────────────
-initCronJobs();
+initCronJobs(io);
 
 const PORT = process.env.PORT || 5000;
 

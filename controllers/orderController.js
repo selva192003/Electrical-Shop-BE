@@ -4,6 +4,7 @@ const Product = require('../models/Product');
 const Notification = require('../models/Notification');
 const User = require('../models/User');
 const { awardPointsForOrder } = require('./loyaltyController');
+const { createNotification } = require('./notificationController');
 const { sendOrderConfirmationEmail, sendCancelOtpEmail } = require('../utils/sendEmail');
 
 // Delivery within Tamil Nadu only.
@@ -323,6 +324,7 @@ exports.verifyCancelOtp = async (req, res, next) => {
 
     // Notify all admins
     try {
+      const io = req.app.get('io');
       const admins = await User.find({ role: 'admin' }).select('_id');
       const notifications = admins.map((admin) => ({
         user: admin._id,
@@ -331,7 +333,10 @@ exports.verifyCancelOtp = async (req, res, next) => {
         type: 'order',
         link: `/admin/orders`,
       }));
-      if (notifications.length > 0) await Notification.insertMany(notifications);
+      if (notifications.length > 0) {
+        const saved = await Notification.insertMany(notifications);
+        if (io) saved.forEach((n) => io.to(`user_${n.user}`).emit('newNotification', { ...n.toObject(), isRead: false }));
+      }
     } catch (_) {}
 
     // Notify the user
@@ -339,14 +344,7 @@ exports.verifyCancelOtp = async (req, res, next) => {
       const userMsg = isRazorpayPaid
         ? `Your order #${id.slice(-8).toUpperCase()} has been cancelled. A refund of ₹${order.totalPrice.toLocaleString('en-IN')} will be credited within 5–7 business days.`
         : `Your order #${id.slice(-8).toUpperCase()} has been successfully cancelled. No charge has been made.`;
-
-      await Notification.create({
-        user: req.user._id,
-        title: 'Order Cancelled',
-        message: userMsg,
-        type: 'order',
-        link: `/orders/${id}`,
-      });
+      await createNotification({ userId: req.user._id, title: 'Order Cancelled', message: userMsg, type: 'order', link: `/orders/${id}` }, req.app.get('io'));
     } catch (_) {}
 
     return res.json({ message: 'Order cancelled successfully', order });
@@ -394,6 +392,7 @@ exports.cancelOrder = async (req, res, next) => {
 
     // Notify all admins
     try {
+      const io = req.app.get('io');
       const admins = await User.find({ role: 'admin' }).select('_id');
       const notifications = admins.map((admin) => ({
         user: admin._id,
@@ -403,11 +402,10 @@ exports.cancelOrder = async (req, res, next) => {
         link: `/admin/orders`,
       }));
       if (notifications.length > 0) {
-        await Notification.insertMany(notifications);
+        const saved = await Notification.insertMany(notifications);
+        if (io) saved.forEach((n) => io.to(`user_${n.user}`).emit('newNotification', { ...n.toObject(), isRead: false }));
       }
-    } catch (_) {
-      // Notifications are non-critical; don't fail the request
-    }
+    } catch (_) {}
 
     // Notify the user — tailor message to payment method
     try {
@@ -417,13 +415,7 @@ exports.cancelOrder = async (req, res, next) => {
       } else {
         userMsg = `Your order #${id.slice(-8).toUpperCase()} has been successfully cancelled. No charge has been made.`;
       }
-      await Notification.create({
-        user: req.user._id,
-        title: 'Order Cancelled',
-        message: userMsg,
-        type: 'order',
-        link: `/orders/${id}`,
-      });
+      await createNotification({ userId: req.user._id, title: 'Order Cancelled', message: userMsg, type: 'order', link: `/orders/${id}` }, req.app.get('io'));
     } catch (_) {}
 
     return res.json({ message: 'Order cancelled successfully', order });

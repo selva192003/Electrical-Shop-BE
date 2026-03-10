@@ -41,7 +41,7 @@ exports.createReturnRequest = async (req, res, next) => {
       message: 'Your return request has been submitted and is under review.',
       type: 'return',
       link: '/returns',
-    });
+    }, req.app.get('io'));
 
     return res.status(201).json(returnReq);
   } catch (error) {
@@ -108,7 +108,7 @@ exports.updateReturnStatus = async (req, res, next) => {
         message: `Your return request status has been updated to: ${status}.`,
         type: 'return',
         link: `/returns/${returnReq._id}`,
-      });
+      }, req.app.get('io'));
     }
 
     return res.json(returnReq);
