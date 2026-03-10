@@ -6,7 +6,6 @@ const sendEmail = require('../utils/sendEmail');
 const { sendForgotPasswordOtpEmail, sendEmailVerificationEmail } = require('../utils/sendEmail');
 const cloudinary = require('../config/cloudinary');
 const streamifier = require('streamifier');
-const { applyReferral } = require('./loyaltyController');
 
 // Google OAuth client for verifying ID tokens from the frontend
 const googleClientId = process.env.GOOGLE_CLIENT_ID;
@@ -38,11 +37,6 @@ exports.registerUser = async (req, res, next) => {
       emailVerificationToken: verificationToken,
       emailVerificationExpires: verificationExpires,
     });
-
-    // Handle referral
-    if (referralCode) {
-      applyReferral(referralCode, user._id).catch(() => {});
-    }
 
     // Send verification email
     const verificationLink = `${process.env.CLIENT_URL}/verify-email?token=${verificationToken}`;

@@ -4,7 +4,6 @@ const Cart = require('../models/Cart');
 const Order = require('../models/Order');
 const User = require('../models/User');
 const Product = require('../models/Product');
-const Coupon = require('../models/Coupon');
 const Notification = require('../models/Notification');
 
 // Helper to create notification in DB and emit socket
@@ -40,37 +39,6 @@ const runAbandonedCartRecovery = async (io) => {
       });
       if (recentOrder) continue; // User already checked out
 
-      // Generate recovery coupon
-      const crypto = require('crypto');
-      const code = `BACK-${crypto.randomBytes(3).toString('hex').toUpperCase()}`;
-      const expiry = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000); // 3 days
-
-      // Check if a recovery coupon was recently created for this user to avoid spam
-      const recentCoupon = await Coupon.findOne({
-        code: { $regex: /^BACK-/ },
-        usedBy: { $ne: cart.user._id },
-        expiresAt: { $gt: new Date() },
-        createdAt: { $gt: cutoff },
-      });
-
-      if (recentCoupon) continue;
-
-      const coupon = await Coupon.create({
-        code,
-        description: 'Abandoned cart recovery — 10% off',
-        discountType: 'percentage',
-        discountValue: 10,
-        minOrderAmount: 200,
-        maxDiscountAmount: 500,
-        usageLimit: 1,
-        perUserLimit: 1,
-        usedBy: [],
-        isActive: true,
-        expiresAt: expiry,
-      }).catch(() => null);
-
-      if (!coupon) continue;
-
       const itemsList = cart.items
         .slice(0, 3)
         .map((item) => `<li>${item.product?.name || 'Product'} (Qty: ${item.quantity}) — ₹${item.price}</li>`)
@@ -88,13 +56,12 @@ const runAbandonedCartRecovery = async (io) => {
             <ul style="background: #f8f9fa; padding: 16px; border-radius: 8px; list-style: none;">
               ${itemsList}${moreItems}
             </ul>
-            <p>Use code <strong style="font-size: 20px; color: #003566; letter-spacing: 2px;">${code}</strong> for <strong>10% off</strong> (valid 3 days).</p>
             <a href="${process.env.CLIENT_URL}/cart" 
                style="background: #003566; color: white; padding: 14px 28px; border-radius: 6px; text-decoration: none; display: inline-block; margin-top: 16px; font-size: 16px;">
               Complete My Purchase
             </a>
             <hr style="margin-top: 24px;"/>
-            <p style="font-size: 12px; color: #888;">Sri Murugan Electricals &amp; Hardwares — Cart Recovery</p>
+            <p style="font-size: 12px; color: #888;">Sri Murugan Electricals &amp; Hardwares</p>
           </div>
         `,
       }).catch(() => {});
@@ -102,7 +69,7 @@ const runAbandonedCartRecovery = async (io) => {
       // In-app notification
       await emitNotification(io, cart.user._id, {
         title: 'Cart Reminder',
-        message: `You have items in your cart! Use code ${code} for 10% off. Valid for 3 days.`,
+        message: `You have items in your cart! Complete your purchase before they sell out.`,
         type: 'promo',
         link: '/cart',
       });

@@ -139,11 +139,9 @@ app.use('/api/wishlist', require('./routes/wishlistRoutes'));
 app.use('/api/notifications', require('./routes/notificationRoutes'));
 app.use('/api/support', require('./routes/supportRoutes'));
 app.use('/api/returns', require('./routes/returnRoutes'));
-app.use('/api/coupons', require('./routes/couponRoutes'));
 
 // ── New feature routes ──
 app.use('/api/recommendations', require('./routes/recommendationRoutes'));
-app.use('/api/loyalty', require('./routes/loyaltyRoutes'));
 app.use('/api/projects', require('./routes/projectRoutes'));
 app.use('/api/calculator', require('./routes/calculatorRoutes'));
 app.use('/api/qna', require('./routes/qnaRoutes'));

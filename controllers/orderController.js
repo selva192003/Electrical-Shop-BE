@@ -3,7 +3,6 @@ const Cart = require('../models/Cart');
 const Product = require('../models/Product');
 const Notification = require('../models/Notification');
 const User = require('../models/User');
-const { awardPointsForOrder } = require('./loyaltyController');
 const { createNotification } = require('./notificationController');
 const { sendOrderConfirmationEmail, sendCancelOtpEmail } = require('../utils/sendEmail');
 
@@ -194,8 +193,6 @@ exports.updateOrderStatus = async (req, res, next) => {
         order.paidAt = new Date();
         order.paymentInfo.status = 'Paid';
       }
-      // Award loyalty points (1 pt per ₹10)
-      awardPointsForOrder(order.user, order._id, order.totalPrice).catch(() => {});
     }
 
     await order.save();
