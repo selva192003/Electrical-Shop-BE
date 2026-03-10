@@ -24,6 +24,7 @@ const httpServer = http.createServer(app);
 // Build allowed origins from env — set CLIENT_URL to your production frontend URL
 // Optionally add comma-separated extra origins via EXTRA_CORS_ORIGINS env var
 const allowedOrigins = [
+  'https://srimuruganelectricals.vercel.app',
   process.env.CLIENT_URL,
   'http://localhost:5173',
   'http://localhost:3000',
