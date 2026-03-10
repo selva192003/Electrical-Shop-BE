@@ -286,3 +286,13 @@ exports.getLowStockProducts = async (req, res, next) => {
     next(err);
   }
 };
+
+// GET /api/dashboard/low-stock-count
+exports.getLowStockCount = async (req, res, next) => {
+  try {
+    const count = await Product.countDocuments({ stock: { $gt: 0, $lte: 5 }, isActive: { $ne: false } });
+    return res.json({ count });
+  } catch (err) {
+    next(err);
+  }
+};
