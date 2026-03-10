@@ -151,13 +151,20 @@ app.use('/api/products', require('./routes/flashSaleRoutes'));
 app.use(notFound);
 app.use(errorHandler);
 
-// ─── Initialize cron jobs ────────────────────────────────────────────────────
-initCronJobs(io);
+// ─── Initialize cron jobs (only in persistent/non-serverless environments) ───
+if (!process.env.VERCEL) {
+  initCronJobs(io);
+}
 
-const PORT = process.env.PORT || 5000;
+// ─── Start server (skip in Vercel serverless) ────────────────────────────────
+if (!process.env.VERCEL) {
+  const PORT = process.env.PORT || 5000;
+  httpServer.listen(PORT, () => {
+    console.log(`Server running in ${process.env.NODE_ENV || 'development'} mode on port ${PORT}`);
+    console.log(`Socket.io ready on port ${PORT}`);
+  });
+}
 
-httpServer.listen(PORT, () => {
-  console.log(`Server running in ${process.env.NODE_ENV || 'development'} mode on port ${PORT}`);
-  console.log(`Socket.io ready on port ${PORT}`);
-});
+// Export for Vercel serverless
+module.exports = app;
 
