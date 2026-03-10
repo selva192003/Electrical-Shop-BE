@@ -1,5 +1,5 @@
 const express = require('express');
-const { addReview, updateReview, deleteReview, adminReply, getMyReview, getProductReviews, checkEligibility } = require('../controllers/reviewController');
+const { addReview, updateReview, deleteReview, adminReply, getMyReview, getProductReviews, checkEligibility, voteReview } = require('../controllers/reviewController');
 const { protect } = require('../middleware/authMiddleware');
 const { admin } = require('../middleware/adminMiddleware');
 
@@ -21,5 +21,8 @@ router.delete('/:reviewId', protect, deleteReview);
 
 // Admin reply
 router.post('/:reviewId/reply', protect, admin, adminReply);
+
+// Like / dislike a review
+router.post('/:reviewId/vote', protect, voteReview);
 
 module.exports = router;

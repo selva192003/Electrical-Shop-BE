@@ -213,3 +213,62 @@ exports.adminReply = async (req, res, next) => {
     next(error);
   }
 };
+
+// POST /api/reviews/:reviewId/vote  — like/dislike a review (toggle)
+exports.voteReview = async (req, res, next) => {
+  try {
+    const { reviewId } = req.params;
+    const { vote } = req.body; // 'helpful' | 'not_helpful'
+    const userId = req.user._id;
+
+    if (!['helpful', 'not_helpful'].includes(vote)) {
+      return res.status(400).json({ message: 'Invalid vote type' });
+    }
+
+    const review = await Review.findById(reviewId);
+    if (!review) return res.status(404).json({ message: 'Review not found' });
+
+    if (review.user.toString() === userId.toString()) {
+      return res.status(403).json({ message: 'You cannot vote on your own review' });
+    }
+
+    const existingIdx = review.votedBy.findIndex(
+      (v) => v.user.toString() === userId.toString()
+    );
+
+    if (existingIdx > -1) {
+      const existingVote = review.votedBy[existingIdx].vote;
+      if (existingVote === vote) {
+        // Toggle off — remove vote
+        review.votedBy.splice(existingIdx, 1);
+        if (vote === 'helpful') review.helpfulVotes = Math.max(0, review.helpfulVotes - 1);
+        else review.notHelpfulVotes = Math.max(0, review.notHelpfulVotes - 1);
+      } else {
+        // Switch vote
+        if (existingVote === 'helpful') review.helpfulVotes = Math.max(0, review.helpfulVotes - 1);
+        else review.notHelpfulVotes = Math.max(0, review.notHelpfulVotes - 1);
+        review.votedBy[existingIdx].vote = vote;
+        if (vote === 'helpful') review.helpfulVotes += 1;
+        else review.notHelpfulVotes += 1;
+      }
+    } else {
+      review.votedBy.push({ user: userId, vote });
+      if (vote === 'helpful') review.helpfulVotes += 1;
+      else review.notHelpfulVotes += 1;
+    }
+
+    await review.save();
+
+    const userVote = review.votedBy.find(
+      (v) => v.user.toString() === userId.toString()
+    )?.vote || null;
+
+    return res.json({
+      helpfulVotes: review.helpfulVotes,
+      notHelpfulVotes: review.notHelpfulVotes,
+      userVote,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
