@@ -199,6 +199,9 @@ exports.updateOrderStatus = async (req, res, next) => {
 
     await order.save();
 
+    // Re-populate user so the frontend receives the full order (same shape as getAllOrders)
+    await order.populate('user', 'name email');
+
     return res.json(order);
   } catch (error) {
     next(error);

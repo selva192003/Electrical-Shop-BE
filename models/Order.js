@@ -66,6 +66,8 @@ const orderSchema = new mongoose.Schema(
     deliveryCharge: { type: Number, default: 0, min: 0 },
     isPaid: { type: Boolean, default: false },
     paidAt: { type: Date },
+    isDelivered: { type: Boolean, default: false },
+    deliveredAt: { type: Date },
     cancelReason: { type: String, default: '' },
     cancelledAt: { type: Date },
     // OTP for cancellation verification
