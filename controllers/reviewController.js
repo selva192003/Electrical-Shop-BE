@@ -38,6 +38,21 @@ const getRatingsPayload = async (productId) => {
   };
 };
 
+// GET /api/reviews/product/:productId/eligibility
+// Returns {eligible: bool} — true if the user has a Delivered order containing this product
+exports.checkEligibility = async (req, res, next) => {
+  try {
+    const eligible = !!(await Order.exists({
+      user: req.user._id,
+      'orderItems.product': req.params.productId,
+      orderStatus: 'Delivered',
+    }));
+    return res.json({ eligible });
+  } catch (err) {
+    next(err);
+  }
+};
+
 // Add or update a product review (only if the order is Delivered)
 exports.addReview = async (req, res, next) => {
   try {
