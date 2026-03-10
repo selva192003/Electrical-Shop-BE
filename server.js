@@ -21,9 +21,28 @@ const app = express();
 const httpServer = http.createServer(app);
 
 // ─── Socket.io Setup ────────────────────────────────────────────────────────
+const allowedOrigins = [
+  process.env.CLIENT_URL,
+  'http://localhost:5173',
+  'http://localhost:3000',
+].filter(Boolean);
+
+const corsOriginFn = (origin, callback) => {
+  // Allow requests with no origin (mobile apps, curl, Postman)
+  if (!origin) return callback(null, true);
+  if (
+    allowedOrigins.includes(origin) ||
+    /^https:\/\/electrical-shop-fe.*\.vercel\.app$/.test(origin) ||
+    /^https:\/\/electrical-shop-mo.*\.vercel\.app$/.test(origin)
+  ) {
+    return callback(null, true);
+  }
+  callback(new Error('Not allowed by CORS'));
+};
+
 const io = new Server(httpServer, {
   cors: {
-    origin: process.env.CLIENT_URL || 'http://localhost:3000',
+    origin: corsOriginFn,
     methods: ['GET', 'POST'],
     credentials: true,
   },
@@ -54,7 +73,7 @@ app.use(helmet());
 // CORS
 app.use(
   cors({
-    origin: process.env.CLIENT_URL || 'http://localhost:3000',
+    origin: corsOriginFn,
     credentials: true,
   })
 );
