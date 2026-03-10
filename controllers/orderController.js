@@ -151,14 +151,15 @@ exports.updateOrderStatus = async (req, res, next) => {
 
     // Define the only legal forward transitions for each status.
     // Terminal states (Delivered, Cancelled) have no allowed next states.
+    // Cancellation is a user-only action (via OTP flow) — admin moves orders forward only
     const ALLOWED_TRANSITIONS = {
-      Pending:            ['Confirmed', 'Cancelled'],
-      Confirmed:          ['Packed',    'Cancelled'],
-      Packed:             ['Shipped',   'Cancelled'],
-      Shipped:            ['Out for Delivery', 'Cancelled'],
-      'Out for Delivery': ['Delivered'],            // locked — cannot cancel or go back
+      Pending:            ['Confirmed'],
+      Confirmed:          ['Packed'],
+      Packed:             ['Shipped'],
+      Shipped:            ['Out for Delivery'],
+      'Out for Delivery': ['Delivered'],            // locked — cannot go back
       Delivered:          [],                        // terminal
-      Cancelled:          [],                        // terminal
+      Cancelled:          [],                        // terminal (set by user cancel flow)
     };
 
     const order = await Order.findById(id);
