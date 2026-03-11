@@ -4,6 +4,7 @@ const { Server } = require('socket.io');
 const dotenv = require('dotenv');
 const morgan = require('morgan');
 const cors = require('cors');
+const compression = require('compression');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const cookieParser = require('cookie-parser');
@@ -79,6 +80,9 @@ io.on('connection', (socket) => {
 
   socket.on('disconnect', () => {});
 });
+
+// Gzip compression — reduces response size significantly
+app.use(compression());
 
 // Security headers
 app.use(helmet());

@@ -1,4 +1,6 @@
 const cron = require('node-cron');
+const https = require('https');
+const http = require('http');
 const sendEmail = require('./sendEmail');
 const Cart = require('../models/Cart');
 const Order = require('../models/Order');
@@ -169,6 +171,21 @@ const initCronJobs = (io) => {
 
   // Low stock alerts: every day at 8:00 AM
   cron.schedule('0 8 * * *', () => runLowStockAlerts(io), { timezone: 'Asia/Kolkata' });
+
+  // ── Keep-alive ping: every 14 minutes to prevent Render free tier sleep ──
+  const backendUrl = process.env.RENDER_EXTERNAL_URL || process.env.BACKEND_URL;
+  if (backendUrl) {
+    const pingUrl = `${backendUrl}/api/health`;
+    const client = pingUrl.startsWith('https') ? https : http;
+    cron.schedule('*/14 * * * *', () => {
+      client.get(pingUrl, (res) => {
+        console.log(`[Cron] Keep-alive ping → ${res.statusCode}`);
+      }).on('error', (err) => {
+        console.warn('[Cron] Keep-alive ping failed:', err.message);
+      });
+    });
+    console.log(`[Cron] Keep-alive ping scheduled → ${pingUrl}`);
+  }
 
   console.log('[Cron] All scheduled jobs initialized');
 };
