@@ -196,19 +196,45 @@ exports.uploadProfileImage = async (req, res, next) => {
   }
 };
 
-// Change password (requires current password)
+// Send OTP to logged-in user's email to verify identity before changing password
+exports.sendChangePasswordOtp = async (req, res, next) => {
+  try {
+    const user = await User.findById(req.user._id);
+    if (!user) return res.status(404).json({ message: 'User not found' });
+
+    if (user.provider === 'google') {
+      return res.status(400).json({
+        message: 'Google accounts do not have a password.',
+        code: 'GOOGLE_ACCOUNT',
+      });
+    }
+
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    user.resetPasswordOtp = otp;
+    user.resetPasswordOtpExpires = new Date(Date.now() + 10 * 60 * 1000); // 10 min
+    await user.save();
+
+    sendForgotPasswordOtpEmail({ email: user.email, name: user.name, otp }).catch(() => {});
+
+    return res.json({ message: 'OTP sent to your registered email address.' });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Change password (requires OTP verification + current password)
 exports.changePassword = async (req, res, next) => {
   try {
-    const { currentPassword, newPassword } = req.body;
+    const { currentPassword, newPassword, otp } = req.body;
 
-    if (!currentPassword || !newPassword) {
-      return res.status(400).json({ message: 'Current and new password are required' });
+    if (!otp || !currentPassword || !newPassword) {
+      return res.status(400).json({ message: 'OTP, current password and new password are required' });
     }
     if (newPassword.length < 6) {
       return res.status(400).json({ message: 'New password must be at least 6 characters' });
     }
 
-    const user = await User.findById(req.user._id);
+    const user = await User.findById(req.user._id).select('+resetPasswordOtp +resetPasswordOtpExpires');
     if (!user) return res.status(404).json({ message: 'User not found' });
 
     if (user.provider === 'google') {
@@ -218,9 +244,18 @@ exports.changePassword = async (req, res, next) => {
       });
     }
 
+    if (!user.resetPasswordOtp || user.resetPasswordOtp !== otp) {
+      return res.status(400).json({ message: 'Invalid OTP. Please request a new one.' });
+    }
+    if (user.resetPasswordOtpExpires < new Date()) {
+      return res.status(400).json({ message: 'OTP has expired. Please request a new one.' });
+    }
+
     const isMatch = await user.matchPassword(currentPassword);
     if (!isMatch) return res.status(401).json({ message: 'Current password is incorrect' });
 
+    user.resetPasswordOtp = undefined;
+    user.resetPasswordOtpExpires = undefined;
     user.password = newPassword; // hashed by pre-save hook
     await user.save();
 

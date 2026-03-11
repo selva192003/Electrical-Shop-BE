@@ -5,6 +5,7 @@ const {
   getProfile,
   updateProfile,
   uploadProfileImage,
+  sendChangePasswordOtp,
   changePassword,
   getAddresses,
   addAddress,
@@ -41,6 +42,7 @@ router.post('/google-login', googleLogin);
 router.get('/profile', protect, getProfile);
 router.put('/profile', protect, updateProfile);
 router.post('/profile/image', protect, upload.single('image'), uploadProfileImage);
+router.post('/change-password-otp', protect, sendChangePasswordOtp);
 router.put('/change-password', protect, changePassword);
 
 // Address management
