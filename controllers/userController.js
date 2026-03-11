@@ -211,6 +211,13 @@ exports.changePassword = async (req, res, next) => {
     const user = await User.findById(req.user._id);
     if (!user) return res.status(404).json({ message: 'User not found' });
 
+    if (user.provider === 'google') {
+      return res.status(400).json({
+        message: 'Google accounts do not have a password. You sign in using Google.',
+        code: 'GOOGLE_ACCOUNT',
+      });
+    }
+
     const isMatch = await user.matchPassword(currentPassword);
     if (!isMatch) return res.status(401).json({ message: 'Current password is incorrect' });
 
