@@ -22,6 +22,12 @@ exports.registerUser = async (req, res, next) => {
 
     const existingUser = await User.findOne({ email });
     if (existingUser) {
+      if (existingUser.provider === 'google') {
+        return res.status(400).json({
+          message: 'This email is already linked to a Google account. Please sign in with Google.',
+          code: 'GOOGLE_ACCOUNT',
+        });
+      }
       return res.status(400).json({ message: 'User already exists with this email' });
     }
 
@@ -71,6 +77,14 @@ exports.loginUser = async (req, res, next) => {
 
     if (user.isBlocked) {
       return res.status(403).json({ message: 'Your account is blocked. Contact support.' });
+    }
+
+    // Google-only accounts have no usable password — guide them to Google login
+    if (user.provider === 'google') {
+      return res.status(400).json({
+        message: 'This account was created with Google Sign-In. Please use "Continue with Google" to log in.',
+        code: 'GOOGLE_ACCOUNT',
+      });
     }
 
     const isMatch = await user.matchPassword(password);
