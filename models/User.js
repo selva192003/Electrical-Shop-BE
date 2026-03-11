@@ -47,19 +47,7 @@ const userSchema = new mongoose.Schema(
     emailVerificationExpires: { type: Date },
     // Wishlist (stored as array of product refs for quick access)
     wishlist: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Product' }],
-    // Loyalty & Rewards
-    loyaltyPoints: { type: Number, default: 0 },
-    totalPointsEarned: { type: Number, default: 0 },
-    loyaltyTier: {
-      type: String,
-      enum: ['Bronze', 'Silver', 'Gold', 'Platinum'],
-      default: 'Bronze',
-    },
-    // Referral Program
-    referralCode: { type: String, unique: true, sparse: true, uppercase: true },
-    referredBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
-    referralCount: { type: Number, default: 0 },
-    referralRewardClaimed: { type: Boolean, default: false },
+
     // B2B / Business
     isBusinessAccount: { type: Boolean, default: false },
     businessName: { type: String, default: '' },
@@ -75,7 +63,7 @@ const userSchema = new mongoose.Schema(
       promotions: { type: Boolean, default: true },
       restockAlerts: { type: Boolean, default: true },
       warrantyReminders: { type: Boolean, default: true },
-      loyaltyUpdates: { type: Boolean, default: true },
+
     },
     // Dark mode pref stored server-side
     darkMode: { type: Boolean, default: false },

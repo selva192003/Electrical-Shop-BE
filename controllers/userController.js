@@ -14,7 +14,7 @@ const googleClient = googleClientId ? new OAuth2Client(googleClientId) : null;
 // Register a new user
 exports.registerUser = async (req, res, next) => {
   try {
-    const { name, email, password, referralCode } = req.body;
+    const { name, email, password } = req.body;
 
     if (!name || !email || !password) {
       return res.status(400).json({ message: 'Name, email and password are required' });
@@ -461,7 +461,7 @@ exports.verifyEmail = async (req, res, next) => {
     sendEmail({
       to: user.email,
       subject: 'Welcome to Sri Murugan Electricals & Hardwares! ⚡',
-      html: `<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;"><h2 style="color:#003566;">Email verified! Welcome, ${user.name} ⚡</h2><p>Your account is now active. Use code <strong>WELCOME10</strong> for 10% off your first order.</p><a href="${process.env.CLIENT_URL}/products" style="background:#003566;color:white;padding:12px 24px;border-radius:6px;text-decoration:none;display:inline-block;margin-top:12px;">Start Shopping</a></div>`,
+      html: `<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;"><h2 style="color:#003566;">Email verified! Welcome, ${user.name} ⚡</h2><p>Your account is now active. Start exploring our range of genuine electrical and hardware products.</p><a href="${process.env.CLIENT_URL}/products" style="background:#003566;color:white;padding:12px 24px;border-radius:6px;text-decoration:none;display:inline-block;margin-top:12px;">Start Shopping</a></div>`,
     }).catch(() => {});
 
     return res.json({ message: 'Email verified successfully! You can now log in.' });
@@ -601,7 +601,7 @@ exports.googleLogin = async (req, res, next) => {
       sendEmail({
         to: user.email,
         subject: 'Welcome to Sri Murugan Electricals & Hardwares! ⚡',
-        html: `<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;"><h2 style="color:#003566;">Welcome, ${user.name}! ⚡</h2><p>Thank you for joining Sri Murugan Electricals &amp; Hardwares via Google.</p><p>Use code <strong>WELCOME10</strong> for 10% off your first order.</p></div>`,
+        html: `<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;"><h2 style="color:#003566;">Welcome, ${user.name}! ⚡</h2><p>Thank you for joining Sri Murugan Electricals &amp; Hardwares via Google.</p><p>Start exploring our range of genuine electrical and hardware products.</p><a href="${process.env.CLIENT_URL}/products" style="background:#003566;color:white;padding:12px 24px;border-radius:6px;text-decoration:none;display:inline-block;margin-top:12px;">Start Shopping</a></div>`,
       }).catch(() => {});
     } else {
       // Existing user: ensure they are not blocked and, if created locally,
